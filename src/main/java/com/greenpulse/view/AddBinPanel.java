@@ -15,7 +15,7 @@ import java.awt.*;
 public class AddBinPanel extends JPanel {
     private JTextField txtBinID, txtCapacity, txtLocation, txtLatitude, txtLongitude, txtParam1, txtParam2;
     private JComboBox<String> comboType;
-    private JLabel lblParam1, lblParam2, lblCoordinateHelp;
+    private JLabel lblParam1, lblParam2, lblParam2Hint, lblCoordinateHelp;
     private Runnable onBackAction;
     private final BinService binService;
     private JButton btnRegister;
@@ -47,9 +47,10 @@ public class AddBinPanel extends JPanel {
                      Ui.labelled("Capacity (litres)", txtCapacity), Ui.labelled("Location or landmark", txtLocation)), null);
 
         lblParam1 = Ui.fieldLabel("Contamination level (%)"); txtParam1 = Ui.field(new JTextField("12"), null);
-        lblParam2 = Ui.fieldLabel("Not used for recycling"); txtParam2 = Ui.field(new JTextField("25"), null);
+        lblParam2 = Ui.fieldLabel("Temperature (°C)"); txtParam2 = Ui.field(new JTextField("25"), null);
+        lblParam2Hint = Ui.caption("Compost bins only.");
         JPanel sensors = section("Sensor settings", "Use the current sensor values, or adjust them for your bin.",
-                grid(labelled(lblParam1, txtParam1), labelled(lblParam2, txtParam2)),
+                grid(labelled(lblParam1, txtParam1), Ui.column(labelled(lblParam2, txtParam2), Box.createVerticalStrut(Theme.S1), lblParam2Hint)),
                 Ui.caption("These are starting readings. You can update readings later from Sensor simulation."));
 
         txtLatitude = Ui.field(new JTextField(), "4.5 to 21.5"); txtLongitude = Ui.field(new JTextField(), "116.0 to 127.5");
@@ -70,10 +71,13 @@ public class AddBinPanel extends JPanel {
         footer.add(actions, BorderLayout.EAST);
 
         JPanel content = Ui.column(details, Box.createVerticalStrut(Theme.S4), sensors, Box.createVerticalStrut(Theme.S4), location,
-                Box.createVerticalStrut(Theme.S5), footer, Box.createVerticalStrut(Theme.S5));
+                Box.createVerticalStrut(Theme.S4));
         JPanel body = new Ui.ScrollBody(new BorderLayout());
         body.add(new SimulatePanel.MaxWidth(content, 900), BorderLayout.NORTH);
         page.add(Ui.scroll(body), BorderLayout.CENTER);
+        // The register action stays in view however long the form is.
+        footer.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.LINE, 1, 0, 0, 0), new EmptyBorder(Theme.S4, 0, 0, 0)));
+        page.add(new SimulatePanel.MaxWidth(footer, 900), BorderLayout.SOUTH);
         add(page, BorderLayout.CENTER);
 
         comboType.addActionListener(e -> updateTypeFields(true));
@@ -110,7 +114,7 @@ public class AddBinPanel extends JPanel {
         boolean recycling = "Recycling bin".equals(comboType.getSelectedItem());
         if (regenerateId || txtBinID.getText().isEmpty()) txtBinID.setText(newBinId());
         lblParam1.setText(recycling ? "Contamination level (%)" : "Moisture level (%)");
-        lblParam2.setText(recycling ? "Not used for recycling" : "Temperature (°C)");
+        lblParam2Hint.setText(recycling ? "Compost bins only. Not used for recycling bins." : "Starting compost temperature.");
         txtParam2.setEnabled(!recycling);
         txtParam1.setToolTipText(recycling ? "Typical range: 0–100 percent" : "Typical range: 0–100 percent");
     }

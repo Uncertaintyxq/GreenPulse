@@ -22,7 +22,7 @@ public final class Theme {
     public static final String LINE = "GP.line", LINE2 = "GP.line2", LATTICE = "GP.lattice";
     public static final String INK = "GP.ink", INK2 = "GP.ink2", INK3 = "GP.ink3";
     public static final String SIGN = "GP.sign", SIGN_DEEP = "GP.signDeep", SIGN_HOVER = "GP.signHover";
-    public static final String SIGN_INK = "GP.signInk", SIGN_INK2 = "GP.signInk2", SIGN_LATTICE = "GP.signLattice";
+    public static final String SIGN_INK = "GP.signInk", SIGN_INK2 = "GP.signInk2", SIGN_LATTICE = "GP.signLattice", SIGN_LATTICE_STRONG = "GP.signLatticeStrong";
     public static final String CRITICAL = "GP.critical", CRITICAL_INK = "GP.criticalInk", CRITICAL_TEXT = "GP.criticalText", CRITICAL_SOFT = "GP.criticalSoft";
     public static final String WARNING = "GP.warning", WARNING_INK = "GP.warningInk", WARNING_TEXT = "GP.warningText", WARNING_BAR = "GP.warningBar", WARNING_SOFT = "GP.warningSoft";
     public static final String OK = "GP.ok", OK_TEXT = "GP.okText", OK_SOFT = "GP.okSoft";

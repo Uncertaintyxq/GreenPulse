@@ -64,11 +64,11 @@ public class SimulatePanel extends JPanel {
         JButton send = Ui.primary("Send test reading", Glyph.ARROW_RIGHT);
         send.setHorizontalTextPosition(SwingConstants.LEFT);
         send.addActionListener(e -> pushTelemetry());
-        JPanel footer = Ui.transparent(new BorderLayout(Theme.S5, 0));
+        JPanel footer = Ui.transparent(new BorderLayout(0, Theme.S4));
         footer.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.LINE2, 1, 0, 0, 0), new EmptyBorder(Theme.S5, 0, 0, 0)));
-        footer.add(note, BorderLayout.CENTER);
+        footer.add(note, BorderLayout.NORTH);
         JPanel actions = Ui.transparent(new FlowLayout(FlowLayout.RIGHT, 0, 0)); actions.add(send);
-        footer.add(actions, BorderLayout.EAST);
+        footer.add(actions, BorderLayout.SOUTH);
 
         JPanel card = new Ui.Plate(new BorderLayout(0, Theme.S5), Theme.S6);
         card.add(Ui.column(binGroup, Box.createVerticalStrut(Theme.S6), fillGroup, Box.createVerticalStrut(Theme.S5), secondaryGroup), BorderLayout.NORTH);

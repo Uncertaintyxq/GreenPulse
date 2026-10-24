@@ -51,6 +51,7 @@ public class MainDashboardFrame extends JFrame {
     private boolean initialLoadDone = false;
     private final AtomicInteger loadSequence = new AtomicInteger();
     private JButton btnCollect, btnRemove;
+    private Component removeGap;
 
     private JLabel lblTotalBins, lblCriticalCount, lblDueCount, lblAvgFill, lblUpdated;
     private ExitButton exitSign;
@@ -125,7 +126,8 @@ public class MainDashboardFrame extends JFrame {
         cardContainer = new Ui.Ground(cardLayout);
 
         JPanel monitorPanel = createMonitorPanel();
-        analyticsPanel = new AnalyticsPanel(loadedBins, () -> switchToTab("MONITOR"));
+        // Administrators get the detailed operator view; staff and drivers get the plain-language summary.
+        analyticsPanel = new AnalyticsPanel(loadedBins, () -> switchToTab("DISPATCH"), currentUser.getRoleType() != Role.ADMIN);
         simulatePanel = new SimulatePanel(currentUser, loadedBins, () -> switchToTab("MONITOR"));
         routeMapPanel = new RouteMapPanel(currentUser, loadedBins, () -> switchToTab("MONITOR"));
         addBinPanel = new AddBinPanel(currentUser, () -> { txtSearch.setText(""); switchToTab("MONITOR"); });
@@ -177,7 +179,6 @@ public class MainDashboardFrame extends JFrame {
         btnToggleAutoSim.setFont(Theme.semibold(14));
         btnToggleAutoSim.setHorizontalAlignment(SwingConstants.LEFT);
         btnToggleAutoSim.setIconTextGap(Theme.S3);
-        btnToggleAutoSim.setFocusPainted(false);
         btnToggleAutoSim.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnToggleAutoSim.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnToggleAutoSim.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
@@ -196,10 +197,10 @@ public class MainDashboardFrame extends JFrame {
         btnLogout = new JButton(Icons.of(Glyph.LOGOUT, 18));
         btnLogout.setToolTipText("Sign out");
         btnLogout.getAccessibleContext().setAccessibleName("Sign out");
-        btnLogout.setFocusPainted(false);
         btnLogout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnLogout.putClientProperty("JButton.buttonType", "borderless");
-        btnLogout.putClientProperty("FlatLaf.style", "foreground: #FFFFFF; hoverBackground: #11613F; pressedBackground: #08402B");
+        Theme.onThemeChange(btnLogout, () -> btnLogout.putClientProperty("FlatLaf.style", "foreground: " + Ui.hex(Theme.color(Theme.SIGN_INK))
+                + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SIGN_HOVER)) + "; pressedBackground: " + Ui.hex(Theme.color(Theme.SIGN_DEEP))));
         btnLogout.addActionListener(e -> performLogout());
         userFooter.add(who, BorderLayout.CENTER);
         userFooter.add(btnLogout, BorderLayout.EAST);
@@ -276,9 +277,11 @@ public class MainDashboardFrame extends JFrame {
     private void styleAutoSimButton(boolean running) {
         btnToggleAutoSim.setText(running ? "Stop auto-simulation" : "Start auto-simulation");
         btnToggleAutoSim.setIcon(Icons.of(running ? Glyph.STOP : Glyph.PLAY, 18));
+        String sign = Ui.hex(Theme.color(Theme.SIGN)), ink = Ui.hex(Theme.color(Theme.SIGN_INK));
         btnToggleAutoSim.putClientProperty("FlatLaf.style", running
-                ? "background: #FFFFFF; foreground: #0B5137; borderColor: #FFFFFF; hoverBackground: #E3EEE7; margin: 9,12,9,12"
-                : "background: #0B5137; foreground: #FFFFFF; borderColor: #CFE3D6; hoverBackground: #11613F; hoverBorderColor: #FFFFFF; margin: 9,12,9,12");
+                ? "background: " + ink + "; foreground: " + sign + "; borderColor: " + ink + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SIGN_INK2)) + "; margin: 9,12,9,12"
+                : "background: " + sign + "; foreground: " + ink + "; borderColor: " + Ui.hex(Theme.color(Theme.SIGN_INK2))
+                  + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SIGN_HOVER)) + "; hoverBorderColor: " + ink + "; margin: 9,12,9,12");
     }
 
     // ------------------------------------------------------------------ monitor page
@@ -359,6 +362,15 @@ public class MainDashboardFrame extends JFrame {
                 g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 8, 8));
             }
             int x = 20;
+            if (tab == null) { // nothing to do: one quiet, centred line and the arrow
+                g.setColor(Theme.color(Theme.SIGN_INK2));
+                g.setFont(Theme.bold(20));
+                FontMetrics fm = g.getFontMetrics();
+                g.drawString(line, x, (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                Icons.of(Glyph.ARROW_RIGHT, 26, Theme.SIGN_INK2).paintIcon(this, g, getWidth() - 46, getHeight() / 2 - 13);
+                g.dispose();
+                return;
+            }
             g.setFont(Theme.bold(13));
             FontMetrics tabFm = g.getFontMetrics();
             int tabW = tabFm.stringWidth(tab) + 16, tabH = 22, tabY = getHeight() / 2 - 30;
@@ -419,7 +431,8 @@ public class MainDashboardFrame extends JFrame {
         JPanel right = Ui.transparent(null);
         right.setLayout(new BoxLayout(right, BoxLayout.X_AXIS));
         right.add(btnCollect);
-        right.add(Box.createHorizontalStrut(Theme.S5)); // keep the destructive action away from the everyday one
+        removeGap = Box.createHorizontalStrut(Theme.S5); // keep the destructive action away from the everyday one
+        right.add(removeGap);
         right.add(btnRemove);
 
         JPanel bar = Ui.transparent(new BorderLayout(Theme.S3, 0));
@@ -439,6 +452,7 @@ public class MainDashboardFrame extends JFrame {
         binTable.setRowSorter(tableSorter);
         binTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         binTable.setRowHeight(44);
+        binTable.getSelectionModel().addListSelectionListener(e -> updateSelectionActions());
         binTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (binTable.rowAtPoint(e.getPoint()) >= 0 && binTable.columnAtPoint(e.getPoint()) == COL_ROUTE) switchToTab("DISPATCH");
@@ -450,10 +464,10 @@ public class MainDashboardFrame extends JFrame {
         binTable.getColumnModel().getColumn(COL_FILL).setCellRenderer(new FillBarRenderer());
         binTable.getColumnModel().getColumn(COL_PRIORITY).setCellRenderer(new Renderers.Priority());
         binTable.getColumnModel().getColumn(COL_STATUS).setCellRenderer(new StatusBadgeRenderer());
-        binTable.getColumnModel().getColumn(COL_ROUTE).setCellRenderer(new Renderers.Link("Dispatch"));
-        int[] widths = {150, 110, 300, 190, 90, 120, 120};
+        binTable.getColumnModel().getColumn(COL_ROUTE).setCellRenderer(new Renderers.Link("Open Dispatch to plan a route"));
+        int[] widths = {150, 110, 320, 200, 90, 120, 56};
         for (int i = 0; i < widths.length; i++) binTable.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
-        binTable.getColumnModel().getColumn(COL_ROUTE).setMaxWidth(140);
+        binTable.getColumnModel().getColumn(COL_ROUTE).setMaxWidth(64);
 
         JPanel plate = new Ui.Plate(new BorderLayout(), 1);
         plate.add(scroll);
@@ -498,15 +512,13 @@ public class MainDashboardFrame extends JFrame {
             @Override protected void paintComponent(Graphics g0) {
                 Graphics2D g = (Graphics2D) g0.create();
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g.setColor(new Color(0, 0, 0, 40));
-                g.fill(new RoundRectangle2D.Double(0, 3, getWidth(), getHeight() - 3, 10, 10));
                 g.setColor(UIManager.getColor("ToolTip.background"));
-                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight() - 3, 10, 10));
+                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
                 g.dispose();
             }
         };
         innerCard.setOpaque(false);
-        innerCard.setBorder(new EmptyBorder(12, 16, 15, 18));
+        innerCard.setBorder(new EmptyBorder(12, 16, 12, 18));
 
         lblToastMessage = new JLabel("Notification ready.");
         lblToastMessage.setFont(Theme.semibold(14));
@@ -602,11 +614,12 @@ public class MainDashboardFrame extends JFrame {
 
     private void applyRolePermissions() {
         btnRemove.setVisible(currentUser.getRoleType().canArchiveBins());
+        removeGap.setVisible(btnRemove.isVisible());
+        updateSelectionActions();
         btnCollect.setVisible(currentUser.getRoleType().canRecordCollections());
         if (currentUser.getRoleType() == Role.DRIVER) {
             navButtons.get("SIMULATE").setVisible(false);
             navButtons.get("ADD").setVisible(false);
-            navButtons.get("ANALYTICS").setVisible(false);
             btnToggleAutoSim.setVisible(false);
             switchToTab("DISPATCH");
         } else {
@@ -674,7 +687,7 @@ public class MainDashboardFrame extends JFrame {
                     lblUpdated.setText("Live fill levels for every active bin · updated " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
                     if (critical > 0) exitSign.show("NEXT", "Dispatch " + critical + " critical bin" + (critical == 1 ? "" : "s"), true);
                     else if (due > 0) exitSign.show("NEXT", "Route " + due + " bin" + (due == 1 ? "" : "s") + " due for pickup", false);
-                    else exitSign.show("CLEAR", "No bins need collection", false);
+                    else exitSign.show(null, "No bins need collection", false);
 
                     // A driver starts on the dispatch screen before the first load finishes, so hand it the bins now.
                     if (!initialLoadDone) {
@@ -707,6 +720,16 @@ public class MainDashboardFrame extends JFrame {
                 return;
             }
         }
+    }
+
+    /** Mark collected and Remove bin act on the selected row, so they are only available while one is selected. */
+    private void updateSelectionActions() {
+        boolean selected = binTable.getSelectedRow() >= 0;
+        btnCollect.setEnabled(selected);
+        btnRemove.setEnabled(selected);
+        String hint = selected ? null : "Select a bin in the table first.";
+        btnCollect.setToolTipText(selected ? "Record the selected bin as emptied and reset its fill level to 0%." : hint);
+        btnRemove.setToolTipText(selected ? "Remove the selected bin from the system. Its history is kept for reports." : hint);
     }
 
     private String selectedBinId() {

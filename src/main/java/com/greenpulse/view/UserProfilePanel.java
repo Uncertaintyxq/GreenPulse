@@ -56,7 +56,7 @@ public class UserProfilePanel extends JPanel {
                 Box.createVerticalStrut(Theme.S5),
                 choiceRow,
                 Box.createVerticalStrut(Theme.S4),
-                Ui.caption("Applies to every screen straight away and is remembered next time you sign in.")), BorderLayout.NORTH);
+                Ui.caption(Ui.wrap("Applies to every screen straight away and is remembered next time you sign in.", 330))), BorderLayout.NORTH);
 
         JPanel cards = Ui.transparent(new GridLayout(1, 2, Theme.S4, 0));
         cards.add(userCard);

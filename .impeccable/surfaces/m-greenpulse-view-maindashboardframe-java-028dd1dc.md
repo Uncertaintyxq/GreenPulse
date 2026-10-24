@@ -27,6 +27,6 @@ FORM: Road Guide Sign, position 3 of 7 on the ordered list (RA 9003 segregation 
 
 Raises kept from declined challengers: colour only inside bounded plates (lexicon); one reserved marking for the active page and next action (orienteering); flat sign colour (zoo); destructive actions isolated and outlined (console); one bin-code style everywhere (doujin); one fixed tonal ramp for neutrals (exposure).
 
-Signature interaction: the gantry's exit panel updates live with the critical count and opens Dispatch. When nothing is critical it reads "All bins below 85%" in quiet green. Motion: state changes only, 150–200 ms.
+Signature interaction: the gantry's exit panel updates live with the critical count and opens Dispatch. When no bin is critical or due it drops the tab and reads "No bins need collection" in quiet green (a bin can be critical below 85% through its priority score, so the 85% wording would be untrue). Motion: state changes only, 150–200 ms.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

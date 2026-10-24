@@ -70,6 +70,11 @@ final class Ui {
     /** A guide-sign panel: sign green, a white inset border and the sheeting lattice. Text on it is white. */
     static class Sign extends JPanel {
         private final int inset;
+        private boolean fullBleed;
+        private String latticeKey = Theme.SIGN_LATTICE;
+
+        /** Fills its whole area edge to edge (a window background) with a stronger lattice. */
+        Sign fullBleed(String latticeKey) { this.fullBleed = true; this.latticeKey = latticeKey; return this; }
 
         Sign(LayoutManager layout, int inset, int padding) {
             super(layout);
@@ -82,12 +87,13 @@ final class Ui {
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            RoundRectangle2D outer = new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), ARC + 4, ARC + 4);
+            Shape outer = fullBleed ? new Rectangle(0, 0, getWidth(), getHeight())
+                    : new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), ARC + 4, ARC + 4);
             g.setColor(Theme.color(Theme.SIGN));
             g.fill(outer);
             Shape clip = g.getClip();
             g.clip(outer);
-            paintLattice(g, getWidth(), getHeight(), Theme.color(Theme.SIGN_LATTICE), 22);
+            paintLattice(g, getWidth(), getHeight(), Theme.color(latticeKey), 22);
             g.setClip(clip);
             g.setColor(Theme.color(Theme.SIGN_INK));
             g.setStroke(new BasicStroke(1.5f));
@@ -166,6 +172,51 @@ final class Ui {
         return words;
     }
 
+    /** A bin ID on its quiet chip, the same code style the tables use. */
+    static JComponent codeChip(String code) {
+        return new JComponent() {
+            { setPreferredSize(new Dimension(textWidth() + 16, 26)); setToolTipText(code); }
+            private int textWidth() { return getFontMetrics(Theme.monoBold(13)).stringWidth(code); }
+            @Override public Dimension getMaximumSize() { return getPreferredSize(); }
+            @Override protected void paintComponent(Graphics g0) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                int w = textWidth() + 14, h = 24, y = (getHeight() - h) / 2;
+                g.setColor(Theme.color(Theme.SURFACE2));
+                g.fill(new RoundRectangle2D.Double(0, y, w, h, 6, 6));
+                g.setColor(Theme.color(Theme.LINE));
+                g.draw(new RoundRectangle2D.Double(0.5, y + 0.5, w - 1, h - 1, 6, 6));
+                g.setFont(Theme.monoBold(13));
+                FontMetrics fm = g.getFontMetrics();
+                g.setColor(Theme.color(Theme.INK));
+                g.drawString(code, 7, y + (h + fm.getAscent() - fm.getDescent()) / 2);
+                g.dispose();
+            }
+        };
+    }
+
+    /** A small rounded status plate in a sign-class colour, like the table status badges. */
+    static JComponent badge(String text, String fillKey, String inkKey) {
+        return new JComponent() {
+            { setPreferredSize(new Dimension(getFontMetrics(Theme.bold(13)).stringWidth(text) + 22, 26)); setToolTipText(text); }
+            @Override public Dimension getMaximumSize() { return getPreferredSize(); }
+            @Override protected void paintComponent(Graphics g0) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g.setFont(Theme.bold(13));
+                FontMetrics fm = g.getFontMetrics();
+                int w = fm.stringWidth(text) + 20, h = 24, x = getWidth() - w, y = (getHeight() - h) / 2;
+                g.setColor(Theme.color(fillKey));
+                g.fill(new RoundRectangle2D.Double(x, y, w, h, 6, 6));
+                g.setColor(Theme.color(inkKey));
+                g.drawString(text, x + 10, y + (h + fm.getAscent() - fm.getDescent()) / 2);
+                g.dispose();
+            }
+        };
+    }
+
     // ------------------------------------------------------------------ controls
 
     enum Kind { PRIMARY, SECONDARY, DANGER, QUIET }
@@ -174,7 +225,6 @@ final class Ui {
         JButton b = new JButton(text);
         if (glyph != null) { b.setIcon(Icons.of(glyph, 16)); b.setIconTextGap(Theme.S2); }
         b.setFont(Theme.semibold(14));
-        b.setFocusPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         Theme.onThemeChange(b, () -> styleButton(b, kind));
         return b;
@@ -266,7 +316,7 @@ final class Ui {
             RoundRectangle2D shape = new RoundRectangle2D.Double(0.5, 0.5, getWidth() - 1, getHeight() - 1, 10, 10);
             g.setColor(Theme.color(Theme.SURFACE));
             g.fill(shape);
-            g.setColor(Theme.color(Theme.LINE));
+            g.setColor(UIManager.getColor("Component.borderColor"));
             g.draw(shape);
             g.dispose();
         }

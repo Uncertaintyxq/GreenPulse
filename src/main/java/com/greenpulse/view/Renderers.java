@@ -64,21 +64,19 @@ final class Renderers {
         }
     }
 
-    /** A quiet link-style cell ("Dispatch →") for actions that open another page. */
+    /** A quiet arrow-only cell for a row action that opens another page; the label is its tooltip. */
     static final class Link extends DefaultTableCellRenderer {
         private final String label;
         Link(String label) { this.label = label; }
 
         @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            super.getTableCellRendererComponent(table, label, isSelected, false, row, column);
-            setFont(Theme.semibold(14));
-            setForeground(Theme.color(Theme.OK_TEXT));
+            super.getTableCellRendererComponent(table, "", isSelected, false, row, column);
             setBackground(cellBackground(table, isSelected));
-            setIcon(Icons.of(Glyph.ARROW_RIGHT, 14, Theme.OK_TEXT));
-            setHorizontalTextPosition(SwingConstants.LEFT);
-            setIconTextGap(6);
-            setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
-            setToolTipText("Open Dispatch to plan a route");
+            setIcon(Icons.of(Glyph.ARROW_RIGHT, 16, Theme.INK3));
+            setHorizontalAlignment(SwingConstants.CENTER);
+            setBorder(BorderFactory.createEmptyBorder());
+            setToolTipText(label);
+            getAccessibleContext().setAccessibleName(label);
             return this;
         }
     }

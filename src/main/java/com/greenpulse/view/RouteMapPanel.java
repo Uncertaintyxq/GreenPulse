@@ -87,12 +87,12 @@ public class RouteMapPanel extends JPanel {
     private final JLabel lblMapPickMode = new WrappingLabel("Tip: choose a map action, then click a street location.");
     private PickMode pickMode = PickMode.NONE;
     private final JComboBox<Driver> comboDrivers = new JComboBox<>();
-    private final JLabel lblDriverStatus = new WrappingLabel("● Status: READY");
+    private final JLabel lblDriverStatus = new WrappingLabel("Ready");
     private final JLabel lblTotalDistance = new WrappingLabel("Route distance: waiting for route");
     private final JLabel lblEstTime = new WrappingLabel("Estimated total time: —");
     private final JLabel lblFuel = new WrappingLabel("Fuel / energy estimate: —");
     private final JLabel lblRouteNote = new WrappingLabel("Enter GPS coordinates for bins to plan a route.");
-    private final JButton btnDispatch = new JButton("▶ Calculate & Dispatch Route");
+    private final JButton btnDispatch = new JButton("Calculate & dispatch route");
     private final MapCanvas mapCanvas = new MapCanvas();
     private RoadRoutingService.RouteResult routeResult;
     private boolean routeLoading = false;
@@ -104,7 +104,7 @@ public class RouteMapPanel extends JPanel {
     // Dispatch Animation Speed Multiplier (1x, 2x, 5x, 10x)
     private double speedMultiplier = 1.0;
     private JProgressBar dispatchProgressBar;
-    private JLabel lblSpeedIndicator;
+    private Ui.Segmented speedControl;
 
     public RouteMapPanel(User user, List<SmartBin> bins, Runnable onNavBack) {
         this.binList = bins == null ? new ArrayList<>() : new ArrayList<>(bins);
@@ -118,83 +118,65 @@ public class RouteMapPanel extends JPanel {
     }
 
     private void initUI() {
-        setLayout(new BorderLayout(14, 14));
-        setBackground(new Color(245, 248, 250));
-        setBorder(BorderFactory.createEmptyBorder(22, 24, 22, 24));
-
-        JPanel header = new JPanel(new BorderLayout(8, 4));
-        header.setOpaque(false);
-        JLabel title = new JLabel("⚡ GIS Route Optimization & Fleet Dispatch");
-        title.setFont(new Font("SansSerif", Font.BOLD, 22));
-        title.setForeground(new Color(24, 39, 55));
-        JLabel disclaimer = new JLabel("Place depot & bins on the map, calculate OSRM routes, and simulate animated driver dispatch with speed control.");
-        disclaimer.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        disclaimer.setForeground(new Color(100, 116, 139));
-        JPanel titles = new JPanel(new BorderLayout(8, 4));
-        titles.setOpaque(false);
-        titles.add(title, BorderLayout.NORTH);
-        titles.add(disclaimer, BorderLayout.SOUTH);
-        header.add(titles, BorderLayout.CENTER);
+        setLayout(new BorderLayout(Theme.S4, Theme.S5));
+        setOpaque(false);
+        setBorder(BorderFactory.createEmptyBorder(Theme.S6, 40, Theme.S6, 40));
 
         // Always visible at the top right (the left control panel scrolls, so a checkbox there is easy to miss).
-        chkAutoCollect.setFont(new Font("SansSerif", Font.BOLD, 12));
-        chkAutoCollect.setForeground(new Color(6, 95, 70));
+        chkAutoCollect.setFont(Theme.semibold(14));
+        Theme.fg(chkAutoCollect, Theme.OK_TEXT);
         chkAutoCollect.setOpaque(false);
-        chkAutoCollect.setToolTipText("When ticked, each bin is recorded as collected (fill level reset to 0%) as the animated truck reaches it, whether the bin is critical or not. Untick it to confirm stops yourself with the ✔ buttons.");
-        JPanel autoPill = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
-        autoPill.setBackground(new Color(236, 253, 245));
-        autoPill.setBorder(BorderFactory.createLineBorder(new Color(167, 243, 208)));
+        chkAutoCollect.setToolTipText("When ticked, each bin is recorded as collected (fill level reset to 0%) as the animated truck reaches it, whether the bin is critical or not. Untick it to confirm stops yourself with the tick buttons.");
+        JPanel autoPill = new JPanel(new FlowLayout(FlowLayout.LEFT, Theme.S2, 6)) {
+            @Override protected void paintComponent(Graphics g0) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(Theme.color(Theme.OK_SOFT));
+                g.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g.dispose();
+            }
+        };
+        autoPill.setOpaque(false);
+        autoPill.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 10));
         autoPill.add(chkAutoCollect);
-        JPanel autoWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        autoWrap.setOpaque(false);
-        autoWrap.add(autoPill);
-        header.add(autoWrap, BorderLayout.EAST);
-        add(header, BorderLayout.NORTH);
+        add(Ui.pageHeader("Dispatch", "Place the depot and bins, calculate a road route, then dispatch a driver and work through the stops.", autoPill), BorderLayout.NORTH);
 
-        JPanel controls = new JPanel();
+        JPanel controls = new Ui.ScrollBody(null);
         controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
-        controls.setBackground(Color.WHITE);
-        controls.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(226, 232, 240)),
-                BorderFactory.createEmptyBorder(14, 14, 14, 14)));
+        controls.setBorder(BorderFactory.createEmptyBorder(Theme.S5, Theme.S5, Theme.S5, Theme.S5));
         // Let BoxLayout calculate the full content height. A fixed preferred height here
         // can prevent the scroll pane from recognizing that the controls exceed the viewport.
         controls.setMinimumSize(new Dimension(310, 0));
 
-        JLabel depotTitle = new JLabel("1. Set Collection Depot");
-        depotTitle.setFont(new Font("SansSerif", Font.BOLD, 12));
-        controls.add(depotTitle);
-        controls.add(Box.createVerticalStrut(5));
-        JPanel coords = new JPanel(new GridLayout(2, 2, 5, 4));
+        controls.add(stepTitle(1, "Collection depot"));
+        controls.add(Box.createVerticalStrut(Theme.S2));
+        for (JTextField f : new JTextField[]{txtDepotLat, txtDepotLon}) { f.setFont(Theme.mono(14)); f.setPreferredSize(new Dimension(100, 36)); }
+        JPanel coords = new JPanel(new GridLayout(1, 2, Theme.S3, 0));
         coords.setOpaque(false);
-        coords.add(new JLabel("Lat")); coords.add(txtDepotLat);
-        coords.add(new JLabel("Lon")); coords.add(txtDepotLon);
+        coords.add(Ui.labelled("Latitude", txtDepotLat));
+        coords.add(Ui.labelled("Longitude", txtDepotLon));
         controls.add(coords);
-        JButton pickDepot = new JButton("📍 Place Depot on Map");
-        pickDepot.setAlignmentX(Component.LEFT_ALIGNMENT);
-        pickDepot.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        JButton pickDepot = Ui.secondary("Place depot on map", Icons.Glyph.PIN);
+        pickDepot.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         pickDepot.addActionListener(e -> {
             pickMode = PickMode.DEPOT;
             lblMapPickMode.setText("Click the map where your depot should be.");
             mapCanvas.repaint();
         });
-        controls.add(Box.createVerticalStrut(5)); controls.add(pickDepot);
-        JButton applyDepot = new JButton("Use Coordinates / Recalculate");
-        applyDepot.setAlignmentX(Component.LEFT_ALIGNMENT);
-        applyDepot.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        controls.add(Box.createVerticalStrut(Theme.S3)); controls.add(pickDepot);
+        JButton applyDepot = Ui.secondary("Use coordinates and recalculate", Icons.Glyph.REFRESH);
+        applyDepot.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         applyDepot.addActionListener(e -> updateRouteAsync());
-        controls.add(Box.createVerticalStrut(4)); controls.add(applyDepot);
-        controls.add(Box.createVerticalStrut(12));
+        controls.add(Box.createVerticalStrut(Theme.S2)); controls.add(applyDepot);
+        controls.add(divider());
 
-        JLabel binTitle = new JLabel("2. Place Smart Bin Location");
-        binTitle.setFont(new Font("SansSerif", Font.BOLD, 12));
-        controls.add(binTitle);
-        controls.add(Box.createVerticalStrut(5));
-        comboPlaceBin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        controls.add(stepTitle(2, "Place a bin on the map"));
+        controls.add(Box.createVerticalStrut(Theme.S2));
+        comboPlaceBin.setFont(Theme.regular(14));
+        comboPlaceBin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         controls.add(comboPlaceBin);
-        JButton pickBin = new JButton("📍 Place Selected Bin on Map");
-        pickBin.setAlignmentX(Component.LEFT_ALIGNMENT);
-        pickBin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        JButton pickBin = Ui.secondary("Place selected bin on map", Icons.Glyph.PIN);
+        pickBin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         pickBin.addActionListener(e -> {
             if (comboPlaceBin.getSelectedItem() == null) {
                 JOptionPane.showMessageDialog(this, "Register a smart bin first.", "No Bins", JOptionPane.INFORMATION_MESSAGE);
@@ -204,95 +186,73 @@ public class RouteMapPanel extends JPanel {
             lblMapPickMode.setText("Click street location for " + comboPlaceBin.getSelectedItem() + ".");
             mapCanvas.repaint();
         });
-        controls.add(Box.createVerticalStrut(4)); controls.add(pickBin);
-        lblMapPickMode.setFont(new Font("SansSerif", Font.BOLD, 11));
-        lblMapPickMode.setForeground(new Color(5, 150, 105));
+        controls.add(Box.createVerticalStrut(Theme.S2)); controls.add(pickBin);
+        lblMapPickMode.setFont(Theme.semibold(13));
+        Theme.fg(lblMapPickMode, Theme.OK_TEXT);
         lblMapPickMode.setAlignmentX(Component.LEFT_ALIGNMENT);
         lblMapPickMode.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        controls.add(Box.createVerticalStrut(5)); controls.add(lblMapPickMode);
-        
-        JButton fitMap = new JButton("🔍 Fit Depot & Bins in View");
-        fitMap.setAlignmentX(Component.LEFT_ALIGNMENT);
-        fitMap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        controls.add(Box.createVerticalStrut(Theme.S2)); controls.add(lblMapPickMode);
+
+        JButton fitMap = Ui.quiet("Fit depot and bins in view", Icons.Glyph.FIT);
+        fitMap.setHorizontalAlignment(SwingConstants.LEFT);
+        fitMap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         fitMap.addActionListener(e -> { mapCanvas.manualCenter = false; mapCanvas.repaint(); });
-        controls.add(Box.createVerticalStrut(4)); controls.add(fitMap);
-        controls.add(Box.createVerticalStrut(12));
+        controls.add(Box.createVerticalStrut(Theme.S1)); controls.add(fitMap);
+        controls.add(divider());
 
         // Speed Control Section
-        JLabel speedTitle = new JLabel("3. Dispatch Speed Multiplier");
-        speedTitle.setFont(new Font("SansSerif", Font.BOLD, 12));
-        controls.add(speedTitle);
-        controls.add(Box.createVerticalStrut(6));
+        controls.add(stepTitle(3, "Truck animation speed"));
+        controls.add(Box.createVerticalStrut(Theme.S2));
+        speedControl = new Ui.Segmented("1×", "2×", "5×", "10×");
+        double[] speeds = {1.0, 2.0, 5.0, 10.0};
+        speedControl.onSelect(i -> setSpeedMultiplier(speeds[i]));
+        JPanel speedRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        speedRow.setOpaque(false);
+        speedRow.add(speedControl);
+        controls.add(speedRow);
+        controls.add(divider());
 
-        JPanel speedBtnGroup = new JPanel(new GridLayout(1, 4, 4, 0));
-        speedBtnGroup.setOpaque(false);
-        speedBtnGroup.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-
-        JButton btn1x = new JButton("1x");
-        JButton btn2x = new JButton("2x");
-        JButton btn5x = new JButton("5x");
-        JButton btn10x = new JButton("10x");
-
-        styleSpeedButton(btn1x, true);
-        styleSpeedButton(btn2x, false);
-        styleSpeedButton(btn5x, false);
-        styleSpeedButton(btn10x, false);
-
-        btn1x.addActionListener(e -> setSpeedMultiplier(1.0, btn1x, btn2x, btn5x, btn10x));
-        btn2x.addActionListener(e -> setSpeedMultiplier(2.0, btn2x, btn1x, btn5x, btn10x));
-        btn5x.addActionListener(e -> setSpeedMultiplier(5.0, btn5x, btn1x, btn2x, btn10x));
-        btn10x.addActionListener(e -> setSpeedMultiplier(10.0, btn10x, btn1x, btn2x, btn5x));
-
-        speedBtnGroup.add(btn1x);
-        speedBtnGroup.add(btn2x);
-        speedBtnGroup.add(btn5x);
-        speedBtnGroup.add(btn10x);
-        controls.add(speedBtnGroup);
-        controls.add(Box.createVerticalStrut(12));
-
-        JLabel vehicleTitle = new JLabel("4. Assign Vehicle");
-        vehicleTitle.setFont(new Font("SansSerif", Font.BOLD, 12));
-        controls.add(vehicleTitle);
-        controls.add(Box.createVerticalStrut(4));
-        comboDrivers.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        controls.add(stepTitle(4, "Assign vehicle"));
+        controls.add(Box.createVerticalStrut(Theme.S2));
+        comboDrivers.setFont(Theme.regular(14));
+        comboDrivers.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         comboDrivers.addActionListener(e -> updateMetrics());
         controls.add(comboDrivers);
-        controls.add(Box.createVerticalStrut(14));
+        controls.add(Box.createVerticalStrut(Theme.S4));
 
         for (JLabel label : new JLabel[]{lblTotalDistance, lblEstTime, lblFuel}) {
-            label.setFont(new Font("SansSerif", Font.BOLD, 12));
-            label.setForeground(new Color(30, 41, 59));
+            label.setFont(Theme.semibold(14));
+            Theme.fg(label, Theme.INK);
             label.setAlignmentX(Component.LEFT_ALIGNMENT);
-            controls.add(label);
-            controls.add(Box.createVerticalStrut(6));
         }
+        controls.add(lblFuel); // the route summary and Dispatch button live in the fixed footer below
 
-        lblDriverStatus.setFont(new Font("SansSerif", Font.BOLD, 12));
-        lblDriverStatus.setForeground(new Color(5, 150, 105));
-        controls.add(Box.createVerticalStrut(4));
-        controls.add(lblDriverStatus);
-        lblRouteNote.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        lblRouteNote.setForeground(new Color(71, 85, 105));
+        lblDriverStatus.setFont(Theme.bold(14));
+        Theme.fg(lblDriverStatus, Theme.OK_TEXT);
+        lblDriverStatus.setIcon(Icons.of(Icons.Glyph.DOT, 14));
+        lblDriverStatus.setIconTextGap(6);
+        lblDriverStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblRouteNote.setFont(Theme.regular(13));
+        Theme.fg(lblRouteNote, Theme.INK2);
         lblRouteNote.setAlignmentX(Component.LEFT_ALIGNMENT);
-        controls.add(Box.createVerticalStrut(4));
+        controls.add(Box.createVerticalStrut(Theme.S1));
         controls.add(lblRouteNote);
-        controls.add(Box.createVerticalStrut(8));
+        controls.add(Box.createVerticalStrut(Theme.S3));
 
         // Dispatch Route Progress Bar
         dispatchProgressBar = new JProgressBar(0, 100);
-        dispatchProgressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 16));
-        dispatchProgressBar.setStringPainted(true);
-        dispatchProgressBar.setFont(new Font("SansSerif", Font.BOLD, 10));
-        dispatchProgressBar.setForeground(new Color(16, 185, 129));
-        controls.add(dispatchProgressBar);
-        controls.add(Box.createVerticalStrut(8));
+        dispatchProgressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 14));
+        dispatchProgressBar.setStringPainted(false);
+        dispatchProgressBar.setToolTipText("Progress of the truck along the route");
+        dispatchProgressBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        btnDispatch.setBackground(new Color(5, 150, 105));
-        btnDispatch.setForeground(Color.WHITE);
-        btnDispatch.setFont(new Font("SansSerif", Font.BOLD, 12));
-        btnDispatch.setFocusPainted(false);
+        Theme.onThemeChange(btnDispatch, () -> btnDispatch.putClientProperty("FlatLaf.style", "background: " + Ui.hex(Theme.color(Theme.isDark() ? Theme.SIGN_HOVER : Theme.SIGN))
+                + "; foreground: #FFFFFF; borderColor: " + Ui.hex(Theme.color(Theme.SIGN)) + "; hoverBackground: " + Ui.hex(Theme.color(Theme.isDark() ? Theme.SIGN : Theme.SIGN_HOVER))));
+        btnDispatch.setFont(Theme.bold(15));
+        btnDispatch.setIcon(Icons.of(Icons.Glyph.DISPATCH, 18));
+        btnDispatch.setIconTextGap(Theme.S2);
         btnDispatch.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnDispatch.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        btnDispatch.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         btnDispatch.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnDispatch.addActionListener(e -> {
             if (routeLoading) return;
@@ -303,59 +263,47 @@ public class RouteMapPanel extends JPanel {
             animationProgress = 0;
             animationSegment = 0;
             dispatchProgressBar.setValue(0);
-            lblDriverStatus.setText("● Status: EN ROUTE 🚚 (" + speedMultiplier + "x speed)");
+            lblDriverStatus.setText(enRouteText());
             if (!animTimer.isRunning()) animTimer.start();
         });
-        controls.add(btnDispatch);
 
-        JButton reset = new JButton("⏹ Reset Truck Animation");
-        reset.setFont(new Font("SansSerif", Font.BOLD, 11));
-        reset.setAlignmentX(Component.LEFT_ALIGNMENT);
-        reset.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        JButton reset = Ui.secondary("Reset truck animation", Icons.Glyph.STOP);
+        reset.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         reset.addActionListener(e -> {
             if (animTimer != null) animTimer.stop();
             animationProgress = 0; animationSegment = 0;
             dispatchProgressBar.setValue(0);
-            lblDriverStatus.setText("● Status: READY");
+            lblDriverStatus.setText("Ready");
             mapCanvas.repaint();
         });
-        controls.add(Box.createVerticalStrut(6));
+        controls.add(Box.createVerticalStrut(Theme.S3));
         controls.add(reset);
+        controls.add(divider());
 
-        JLabel stopsTitle = new JLabel("5. Route stops");
-        stopsTitle.setFont(new Font("SansSerif", Font.BOLD, 12));
-        stopsTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        controls.add(Box.createVerticalStrut(14));
-        controls.add(stopsTitle);
-        controls.add(Box.createVerticalStrut(4));
-        lblRunSummary.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        lblRunSummary.setForeground(new Color(71, 85, 105));
+        controls.add(stepTitle(5, "Route stops"));
+        controls.add(Box.createVerticalStrut(Theme.S1));
+        lblRunSummary.setFont(Theme.regular(13));
+        Theme.fg(lblRunSummary, Theme.INK2);
         lblRunSummary.setAlignmentX(Component.LEFT_ALIGNMENT);
         controls.add(lblRunSummary);
-        controls.add(Box.createVerticalStrut(4));
+        controls.add(Box.createVerticalStrut(Theme.S2));
         stopsPanel.setLayout(new BoxLayout(stopsPanel, BoxLayout.Y_AXIS));
         stopsPanel.setOpaque(false);
         stopsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         controls.add(stopsPanel);
 
-        JButton export = new JButton("💾 Save Route & Export…");
-        export.setFont(new Font("SansSerif", Font.BOLD, 11));
-        export.setAlignmentX(Component.LEFT_ALIGNMENT);
-        export.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        JButton export = Ui.secondary("Save route and export…", Icons.Glyph.SAVE);
+        export.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         export.addActionListener(e -> saveAndExportRoute());
-        controls.add(Box.createVerticalStrut(6));
+        controls.add(Box.createVerticalStrut(Theme.S3));
         controls.add(export);
 
-        JButton collected = new JButton("✔ Collect All Remaining Stops");
-        collected.setFont(new Font("SansSerif", Font.BOLD, 11));
-        collected.setAlignmentX(Component.LEFT_ALIGNMENT);
-        collected.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        JButton collected = Ui.secondary("Collect all remaining stops", Icons.Glyph.CHECK);
+        collected.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         collected.addActionListener(e -> collectAllRemaining());
-        controls.add(Box.createVerticalStrut(6));
+        controls.add(Box.createVerticalStrut(Theme.S2));
         controls.add(collected);
 
-        JPanel center = new JPanel(new BorderLayout());
-        center.setOpaque(false);
         // Use one left edge for everything and let buttons and drop-downs fill the panel, so their text is not cut off.
         for (Component comp : controls.getComponents()) {
             if (!(comp instanceof JComponent jc) || jc instanceof Box.Filler) continue;
@@ -369,32 +317,47 @@ public class RouteMapPanel extends JPanel {
         }
         JScrollPane controlsScroll = new JScrollPane(controls);
         controlsScroll.setBorder(BorderFactory.createEmptyBorder());
+        controlsScroll.setOpaque(false);
+        controlsScroll.getViewport().setOpaque(false);
         controlsScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         controlsScroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        controlsScroll.setPreferredSize(new Dimension(390, 480));
-        controlsScroll.setMinimumSize(new Dimension(300, 180));
         controlsScroll.getVerticalScrollBar().setUnitIncrement(18);
-        controlsScroll.getViewport().setBackground(Color.WHITE);
         controlsScroll.setViewportBorder(BorderFactory.createEmptyBorder());
+        // The primary action stays in view however far the steps above are scrolled.
+        JPanel footer = new JPanel();
+        footer.setOpaque(false);
+        footer.setLayout(new BoxLayout(footer, BoxLayout.Y_AXIS));
+        footer.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.LINE, 1, 0, 0, 0),
+                BorderFactory.createEmptyBorder(Theme.S4, Theme.S5, Theme.S5, Theme.S5)));
+        for (JComponent c : new JComponent[]{lblDriverStatus, lblTotalDistance, lblEstTime}) {
+            c.setAlignmentX(Component.LEFT_ALIGNMENT);
+            footer.add(c);
+            footer.add(Box.createVerticalStrut(2));
+        }
+        footer.add(Box.createVerticalStrut(Theme.S2));
+        footer.add(dispatchProgressBar);
+        footer.add(Box.createVerticalStrut(Theme.S3));
+        footer.add(btnDispatch);
+        JPanel controlsPlate = new Ui.Plate(new BorderLayout(), 1);
+        controlsPlate.add(controlsScroll, BorderLayout.CENTER);
+        controlsPlate.add(footer, BorderLayout.SOUTH);
+        controlsPlate.setPreferredSize(new Dimension(390, 480));
+        controlsPlate.setMinimumSize(new Dimension(320, 180));
 
-        // High-Visibility Map Border with Accent Frame
-        mapCanvas.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(16, 185, 129), 3), // Emerald Accent Border
-            BorderFactory.createLineBorder(new Color(203, 213, 225), 1)
-        ));
+        mapCanvas.setBorder(BorderFactory.createLineBorder(Theme.color(Theme.SIGN), 2));
 
         // A draggable split pane gives the controls enough room for labels and buttons
         // without permanently squeezing the map. The controls remain independently scrollable.
-        JSplitPane dispatchSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, controlsScroll, mapCanvas);
+        JSplitPane dispatchSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, controlsPlate, mapCanvas);
         dispatchSplit.setContinuousLayout(true);
         dispatchSplit.setOneTouchExpandable(true);
-        dispatchSplit.setResizeWeight(0.38);
-        dispatchSplit.setDividerSize(8);
+        dispatchSplit.setResizeWeight(0.34);
+        dispatchSplit.setDividerSize(Theme.S4);
         dispatchSplit.setBorder(BorderFactory.createEmptyBorder());
-        dispatchSplit.setBackground(new Color(245, 248, 250));
+        dispatchSplit.setOpaque(false);
         dispatchSplit.setPreferredSize(new Dimension(1000, 560));
         dispatchSplit.setMinimumSize(new Dimension(600, 300));
-        dispatchSplit.setDividerLocation(390);
+        dispatchSplit.setDividerLocation(400);
         add(dispatchSplit, BorderLayout.CENTER);
 
         animTimer = new Timer(40, e -> {
@@ -419,26 +382,34 @@ public class RouteMapPanel extends JPanel {
         });
     }
 
-    private void styleSpeedButton(JButton btn, boolean active) {
-        btn.setFont(new Font("SansSerif", Font.BOLD, 11));
-        btn.setFocusPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setMargin(new Insets(2, 4, 2, 4));
-        if (active) {
-            btn.setBackground(new Color(16, 185, 129));
-            btn.setForeground(Color.WHITE);
-        } else {
-            btn.setBackground(new Color(226, 232, 240));
-            btn.setForeground(new Color(51, 65, 85));
-        }
+    /** A numbered step heading for the dispatch workflow (the order matters: depot, bins, speed, vehicle, stops). */
+    private JComponent stepTitle(int number, String text) {
+        JLabel l = Ui.label(text, Theme.bold(16), Theme.INK);
+        JLabel n = Ui.label(String.valueOf(number), Theme.monoBold(14), Theme.OK_TEXT);
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        row.setOpaque(false);
+        row.add(n);
+        row.add(Box.createHorizontalStrut(Theme.S2));
+        row.add(l);
+        return row;
     }
 
-    private void setSpeedMultiplier(double mult, JButton activeBtn, JButton... otherBtns) {
+    private JComponent divider() {
+        JPanel d = new JPanel();
+        d.setOpaque(false);
+        d.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(Theme.S5, 0, Theme.S5 - 1, 0), Ui.hairline(Theme.LINE2, 1, 0, 0, 0)));
+        d.setMaximumSize(new Dimension(Integer.MAX_VALUE, Theme.S5 * 2));
+        return d;
+    }
+
+    private String enRouteText() {
+        return "En route · " + (speedMultiplier == Math.rint(speedMultiplier) ? String.valueOf((int) speedMultiplier) : String.valueOf(speedMultiplier)) + "× speed";
+    }
+
+    private void setSpeedMultiplier(double mult) {
         this.speedMultiplier = mult;
-        styleSpeedButton(activeBtn, true);
-        for (JButton b : otherBtns) styleSpeedButton(b, false);
         if (animTimer != null && animTimer.isRunning()) {
-            lblDriverStatus.setText("● Status: EN ROUTE 🚚 (" + speedMultiplier + "x speed)");
+            lblDriverStatus.setText(enRouteText());
         }
     }
 
@@ -467,7 +438,7 @@ public class RouteMapPanel extends JPanel {
             @Override protected void done() {
                 routeLoading = false;
                 btnDispatch.setEnabled(true);
-                btnDispatch.setText("▶ Calculate & Dispatch Route");
+                btnDispatch.setText("Calculate & dispatch route");
                 if (reroutePending) {
                     reroutePending = false;
                     updateRouteAsync();
@@ -487,7 +458,7 @@ public class RouteMapPanel extends JPanel {
                         for (SmartBin bin : binList) if (!bin.hasCoordinates()) missing++;
                         lblRouteNote.setText("Optimized " + routeResult.orderedBins.size() + " stop(s) by road distance. " +
                                 (missing > 0 ? missing + " bin(s) missing GPS." : "All active bins have GPS coordinates."));
-                        lblDriverStatus.setText("● Status: ROUTE READY");
+                        lblDriverStatus.setText("Route ready");
                     }
                     updateMetrics();
                     mapCanvas.repaint();
@@ -610,29 +581,30 @@ public class RouteMapPanel extends JPanel {
     private JPanel stopRow(int index) {
         SmartBin bin = run.bin(index);
         StopStatus status = run.status(index);
-        JPanel row = new JPanel(new BorderLayout(6, 0));
+        JPanel row = new JPanel(new BorderLayout(Theme.S2, 0));
         row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        row.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.LINE2, 0, 0, 1, 0), BorderFactory.createEmptyBorder(6, 0, 6, 0)));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        String mark = status == StopStatus.COLLECTED ? "✓ " : status == StopStatus.SKIPPED ? "× " : "";
-        JLabel label = new JLabel(String.format(Locale.US, "%s%d. %s  %d%%", mark, index + 1, bin.getBinID(), Math.round(bin.getFillPercentage())));
-        label.setFont(new Font("SansSerif", status == StopStatus.PENDING ? Font.PLAIN : Font.BOLD, 11));
-        label.setForeground(status == StopStatus.COLLECTED ? new Color(22, 101, 52)
-                : status == StopStatus.SKIPPED ? new Color(100, 116, 139) : new Color(30, 41, 59));
-        if (status == StopStatus.SKIPPED) label.setToolTipText("Skipped: " + run.skipReason(index));
+        JLabel label = new JLabel(String.format(Locale.US, "%d  %s  %d%%", index + 1, bin.getBinID(), Math.round(bin.getFillPercentage())));
+        label.setFont(status == StopStatus.PENDING ? Theme.mono(13) : Theme.monoBold(13));
+        Theme.fg(label, status == StopStatus.COLLECTED ? Theme.OK_TEXT : status == StopStatus.SKIPPED ? Theme.INK3 : Theme.INK);
+        if (status == StopStatus.COLLECTED) label.setIcon(Icons.of(Icons.Glyph.CHECK, 14, Theme.OK_TEXT));
+        if (status == StopStatus.SKIPPED) { label.setIcon(Icons.of(Icons.Glyph.SKIP, 14, Theme.INK3)); label.setToolTipText("Skipped: " + run.skipReason(index)); }
         row.add(label, BorderLayout.CENTER);
         if (status == StopStatus.PENDING) {
-            JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 0));
+            JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
             buttons.setOpaque(false);
-            JButton collect = new JButton("✔");
+            JButton collect = new JButton(Icons.of(Icons.Glyph.CHECK, 16));
             collect.setToolTipText("Collect this stop: the bin is emptied and its fill level reset");
+            collect.getAccessibleContext().setAccessibleName("Collect " + bin.getBinID());
             collect.addActionListener(e -> resolveStopAsync(index, true, null, false));
-            JButton skip = new JButton("⏭");
+            JButton skip = new JButton(Icons.of(Icons.Glyph.SKIP, 16));
             skip.setToolTipText("Skip this stop and record why");
+            skip.getAccessibleContext().setAccessibleName("Skip " + bin.getBinID());
             skip.addActionListener(e -> skipStopWithReason(index));
             for (JButton b : new JButton[]{collect, skip}) {
-                b.setMargin(new Insets(1, 6, 1, 6));
-                b.setFocusPainted(false);
+                b.setMargin(new Insets(4, 8, 4, 8));
                 b.setEnabled(!stopActionBusy);
                 buttons.add(b);
             }
@@ -662,13 +634,13 @@ public class RouteMapPanel extends JPanel {
             resolveStopAsync(next, true, null, true);
         } else if (hintedStop != next) {
             hintedStop = next;
-            lblRouteNote.setText("Truck reached " + id + ". Auto-collect is off, so press ✔ in Route stops to record it.");
+            lblRouteNote.setText("Truck reached " + id + ". Auto-collect is off, so use the tick button for this stop in Route stops to record it.");
         }
     }
 
     private String driveFinishedText() {
-        if (run == null || run.isFinished()) return "● Status: ROUTE COMPLETED ✓";
-        return "● Status: BACK AT DEPOT – " + run.count(StopStatus.PENDING) + " stop(s) still open";
+        if (run == null || run.isFinished()) return "Route completed";
+        return "Back at depot · " + run.count(StopStatus.PENDING) + " stop(s) still open";
     }
 
     /** Saves the route the first time it is needed so stops can be recorded against it. Runs off the Swing thread. */
@@ -683,8 +655,8 @@ public class RouteMapPanel extends JPanel {
         rebuildStopsPanel();
         mapCanvas.repaint();
         if (run != null && run.isFinished()) {
-            lblDriverStatus.setText("● Status: ROUTE COMPLETED ✓ (" + run.count(StopStatus.COLLECTED) + " collected, "
-                    + run.count(StopStatus.SKIPPED) + " skipped)");
+            lblDriverStatus.setText("Route completed · " + run.count(StopStatus.COLLECTED) + " collected, "
+                    + run.count(StopStatus.SKIPPED) + " skipped");
             lblRouteNote.setText("Route complete. Open the Monitor or Analytics to see the updated fill levels and collection stats.");
         }
     }
@@ -805,7 +777,7 @@ public class RouteMapPanel extends JPanel {
         if (animTimer != null) animTimer.stop();
         animationProgress = 0; animationSegment = 0;
         dispatchProgressBar.setValue(0);
-        lblDriverStatus.setText("● Status: READY");
+        lblDriverStatus.setText("Ready");
         mapCanvas.repaint();
         updateRouteAsync();
     }

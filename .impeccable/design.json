@@ -1,0 +1,722 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T16:48:23+00:00",
+  "title": "Design System: GreenPulse",
+  "extensions": {
+    "colorMeta": {
+      "sign-green": {
+        "role": "primary",
+        "displayName": "Sign Green",
+        "canonical": "#0B5137",
+        "night": "#0B5137",
+        "tonalRamp": [
+          "#09432E",
+          "#10754F",
+          "#17A671",
+          "#1DD892",
+          "#47E6AB",
+          "#78EDC1",
+          "#AEF4DA",
+          "#E9FCF5"
+        ]
+      },
+      "sign-green-deep": {
+        "role": "primary",
+        "displayName": "Sign Green Deep",
+        "canonical": "#08402B",
+        "night": "#083A27",
+        "tonalRamp": [
+          "#08442E",
+          "#0F764F",
+          "#15A871",
+          "#1BDA92",
+          "#45E8AB",
+          "#77EEC1",
+          "#ADF5DA",
+          "#E8FCF5"
+        ]
+      },
+      "sign-green-hover": {
+        "role": "primary",
+        "displayName": "Sign Green Lit",
+        "canonical": "#11613F",
+        "night": "#11613F",
+        "tonalRamp": [
+          "#0B412A",
+          "#147149",
+          "#1CA168",
+          "#25D087",
+          "#4DE0A1",
+          "#7DE8BB",
+          "#B1F1D6",
+          "#E9FBF4"
+        ]
+      },
+      "sign-legend": {
+        "role": "primary",
+        "displayName": "Sign Legend",
+        "canonical": "#FFFFFF",
+        "night": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5E5E5E",
+          "#7A7A7A",
+          "#969696",
+          "#B2B2B2",
+          "#D1D1D1",
+          "#F2F2F2"
+        ]
+      },
+      "sign-legend-soft": {
+        "role": "primary",
+        "displayName": "Soft Legend",
+        "canonical": "#CFE3D6",
+        "night": "#CFE3D6",
+        "tonalRamp": [
+          "#1C3023",
+          "#31543D",
+          "#467757",
+          "#5A9B71",
+          "#7BB28E",
+          "#9EC7AC",
+          "#C5DDCD",
+          "#EFF6F1"
+        ]
+      },
+      "regulatory-red": {
+        "role": "secondary",
+        "displayName": "Regulatory Red",
+        "canonical": "#B42318",
+        "night": "#C42B1F",
+        "tonalRamp": [
+          "#440D09",
+          "#751710",
+          "#A62016",
+          "#D82A1D",
+          "#E65246",
+          "#ED8078",
+          "#F4B3AE",
+          "#FCEAE8"
+        ]
+      },
+      "regulatory-red-ink": {
+        "role": "secondary",
+        "displayName": "Regulatory Red Ink",
+        "canonical": "#FFFFFF",
+        "night": "#FFFFFF",
+        "tonalRamp": [
+          "#262626",
+          "#424242",
+          "#5E5E5E",
+          "#7A7A7A",
+          "#969696",
+          "#B2B2B2",
+          "#D1D1D1",
+          "#F2F2F2"
+        ]
+      },
+      "regulatory-red-text": {
+        "role": "secondary",
+        "displayName": "Regulatory Red Text",
+        "canonical": "#A3201A",
+        "night": "#FF8A7A",
+        "tonalRamp": [
+          "#420D0B",
+          "#721612",
+          "#A3201A",
+          "#D32922",
+          "#E2514B",
+          "#EA807B",
+          "#F2B3B0",
+          "#FBEAE9"
+        ]
+      },
+      "regulatory-red-soft": {
+        "role": "secondary",
+        "displayName": "Regulatory Red Soft",
+        "canonical": "#FBE9E7",
+        "night": "#3A1C19",
+        "tonalRamp": [
+          "#42100B",
+          "#721C13",
+          "#A2281B",
+          "#D23423",
+          "#E15B4C",
+          "#E9877C",
+          "#F2B7B0",
+          "#FBEBE9"
+        ]
+      },
+      "advisory-yellow": {
+        "role": "secondary",
+        "displayName": "Advisory Yellow",
+        "canonical": "#F2B705",
+        "night": "#F2B705",
+        "tonalRamp": [
+          "#493804",
+          "#7E6007",
+          "#B38909",
+          "#E9B20C",
+          "#F5C638",
+          "#F7D56E",
+          "#FAE6A8",
+          "#FEF8E7"
+        ]
+      },
+      "advisory-yellow-ink": {
+        "role": "secondary",
+        "displayName": "Advisory Yellow Ink",
+        "canonical": "#17231C",
+        "night": "#17231C",
+        "tonalRamp": [
+          "#1E2E25",
+          "#355040",
+          "#4B725B",
+          "#619476",
+          "#81AC93",
+          "#A3C2B0",
+          "#C8DBD0",
+          "#F0F5F2"
+        ]
+      },
+      "advisory-yellow-text": {
+        "role": "secondary",
+        "displayName": "Advisory Yellow Text",
+        "canonical": "#8A5A00",
+        "night": "#F2C744",
+        "tonalRamp": [
+          "#493104",
+          "#7E5407",
+          "#B37809",
+          "#E99C0C",
+          "#F5B338",
+          "#F7C76E",
+          "#FADEA8",
+          "#FEF6E7"
+        ]
+      },
+      "advisory-yellow-bar": {
+        "role": "secondary",
+        "displayName": "Advisory Yellow Bar",
+        "canonical": "#A87A00",
+        "night": "#D9A406",
+        "tonalRamp": [
+          "#493604",
+          "#7E5D07",
+          "#B38509",
+          "#E9AC0C",
+          "#F5C138",
+          "#F7D26E",
+          "#FAE4A8",
+          "#FEF7E7"
+        ]
+      },
+      "advisory-yellow-soft": {
+        "role": "secondary",
+        "displayName": "Advisory Yellow Soft",
+        "canonical": "#FDF3D3",
+        "night": "#3A3014",
+        "tonalRamp": [
+          "#493804",
+          "#7E6207",
+          "#B38B09",
+          "#E9B40C",
+          "#F5C838",
+          "#F7D76E",
+          "#FAE7A8",
+          "#FEF8E7"
+        ]
+      },
+      "guide-ok": {
+        "role": "secondary",
+        "displayName": "Guide OK",
+        "canonical": "#0B5137",
+        "night": "#3FA674",
+        "tonalRamp": [
+          "#09432E",
+          "#10754F",
+          "#17A671",
+          "#1DD892",
+          "#47E6AB",
+          "#78EDC1",
+          "#AEF4DA",
+          "#E9FCF5"
+        ]
+      },
+      "guide-ok-text": {
+        "role": "secondary",
+        "displayName": "Guide OK Text",
+        "canonical": "#0B5137",
+        "night": "#8ED7AE",
+        "tonalRamp": [
+          "#09432E",
+          "#10754F",
+          "#17A671",
+          "#1DD892",
+          "#47E6AB",
+          "#78EDC1",
+          "#AEF4DA",
+          "#E9FCF5"
+        ]
+      },
+      "guide-ok-soft": {
+        "role": "secondary",
+        "displayName": "Guide OK Soft",
+        "canonical": "#E3EEE7",
+        "night": "#1C3527",
+        "tonalRamp": [
+          "#1D3024",
+          "#32533E",
+          "#477558",
+          "#5C9872",
+          "#7DB08F",
+          "#A0C5AD",
+          "#C6DCCE",
+          "#EFF5F1"
+        ]
+      },
+      "service-blue": {
+        "role": "tertiary",
+        "displayName": "Service Blue",
+        "canonical": "#1F4E8C",
+        "night": "#7FA9E6",
+        "tonalRamp": [
+          "#0E233F",
+          "#183C6D",
+          "#22569A",
+          "#2C70C8",
+          "#548DD9",
+          "#82ACE3",
+          "#B4CDEE",
+          "#EAF1FA"
+        ]
+      },
+      "tourist-brown": {
+        "role": "tertiary",
+        "displayName": "Tourist Brown",
+        "canonical": "#7A4E24",
+        "night": "#D29A68",
+        "tonalRamp": [
+          "#3B2611",
+          "#66411E",
+          "#925D2B",
+          "#BD7938",
+          "#CF955E",
+          "#DCB289",
+          "#EAD1B8",
+          "#F9F2EB"
+        ]
+      },
+      "fleet-grey": {
+        "role": "tertiary",
+        "displayName": "Fleet Grey",
+        "canonical": "#43534A",
+        "night": "#B3C2B8",
+        "tonalRamp": [
+          "#222A26",
+          "#3B4941",
+          "#54685D",
+          "#6D8779",
+          "#8BA295",
+          "#AABBB1",
+          "#CCD6D0",
+          "#F1F4F2"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Ground",
+        "canonical": "#F3F5F1",
+        "night": "#0F1512",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#FFFFFF",
+        "night": "#161E19",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Surface 2",
+        "canonical": "#F7F8F6",
+        "night": "#1B2520",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "canonical": "#D5DCD6",
+        "night": "#2E3B34",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "line-2": {
+        "role": "neutral",
+        "displayName": "Line 2",
+        "canonical": "#EAEEEA",
+        "night": "#222D27",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "control-border": {
+        "role": "neutral",
+        "displayName": "Control Border",
+        "canonical": "#828D86",
+        "night": "#5F7066",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#17231C",
+        "night": "#E6EDE8",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#43534A",
+        "night": "#B3C2B8",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "#5D6B63",
+        "night": "#8FA196",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "row-selected": {
+        "role": "neutral",
+        "displayName": "Row Selected",
+        "canonical": "#DCEBE1",
+        "night": "#1F3A2B",
+        "tonalRamp": [
+          "#0F1512",
+          "#17231C",
+          "#43534A",
+          "#5D6B63",
+          "#828D86",
+          "#D5DCD6",
+          "#EAEEEA",
+          "#F3F5F1"
+        ]
+      },
+      "lattice": {
+        "role": "neutral",
+        "displayName": "Prism Lattice",
+        "canonical": "#0B51370B",
+        "night": "#FFFFFF06",
+        "note": "Ground lattice; sign lattice #FFFFFF0E (strong #FFFFFF1C on full-bleed login)."
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Gantry counts in white on the sign only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page title, one per page."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Analytics figures plate."
+      },
+      "sign-action": {
+        "displayName": "Sign Action",
+        "purpose": "Exit-panel line on the gantry (23px when alerting)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Plate titles and empty-state headings."
+      },
+      "nav": {
+        "displayName": "Nav",
+        "purpose": "Rail items."
+      },
+      "subtitle": {
+        "displayName": "Subtitle",
+        "purpose": "One-line purpose under a page title."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Table cells, field text, prose."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "All buttons."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field labels, table headers, segment options."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Plate subtitles and helper text."
+      },
+      "badge": {
+        "displayName": "Badge",
+        "purpose": "Status plates and the NEXT tab."
+      },
+      "mono-figure": {
+        "displayName": "Mono Figure",
+        "purpose": "Fill, priority, readings, coordinates."
+      },
+      "mono-code": {
+        "displayName": "Mono Code",
+        "purpose": "Bin IDs, always on the bin code chip."
+      },
+      "mono-axis": {
+        "displayName": "Mono Axis",
+        "purpose": "Chart axes and ticks."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "state-change (contracted, not built)",
+        "value": "150-200ms",
+        "purpose": "Contracted for state changes only; the shipped build has no animated transitions."
+      }
+    ],
+    "breakpoints": [],
+    "themes": {
+      "day": "src/main/resources/com/greenpulse/theme/FlatLightLaf.properties",
+      "night": "src/main/resources/com/greenpulse/theme/FlatDarkLaf.properties",
+      "shared": "src/main/resources/com/greenpulse/theme/FlatLaf.properties"
+    },
+    "outOfScope": [
+      "MapCanvas in RouteMapPanel.java (owner-protected: tiles, routing, pins, truck animation, overlays, colours)"
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "One leading action per surface: Dispatch, Save, Sign in.",
+      "html": "<button class=\"ds-btn-primary\">Dispatch route</button>",
+      "css": ".ds-btn-primary { font-family: Overpass, sans-serif; font-weight:600; font-size:14px; background:#0B5137; color:#FFFFFF; border:1px solid #0B5137; border-radius:8px; padding:7px 16px; cursor:pointer; } .ds-btn-primary:hover { background:#11613F; border-color:#11613F; } .ds-btn-primary:active { background:#08402B; } .ds-btn-primary:focus-visible { outline:2px solid rgba(11,81,55,0.4); outline-offset:1px; border-color:#FFFFFF; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Everyday actions; white with the control border.",
+      "html": "<button class=\"ds-btn-secondary\">Mark collected</button>",
+      "css": ".ds-btn-secondary { font-family: Overpass, sans-serif; font-weight:600; font-size:14px; background:#FFFFFF; color:#17231C; border:1px solid #828D86; border-radius:8px; padding:7px 16px; cursor:pointer; } .ds-btn-secondary:hover { border-color:#0B5137; } .ds-btn-secondary:focus-visible { outline:2px solid rgba(11,81,55,0.4); outline-offset:1px; border-color:#0B5137; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action: outlined only, last in its row behind a 24px gap.",
+      "html": "<button class=\"ds-btn-danger\">Remove bin</button>",
+      "css": ".ds-btn-danger { font-family: Overpass, sans-serif; font-weight:600; font-size:14px; background:#FFFFFF; color:#A3201A; border:1px solid #A3201A; border-radius:8px; padding:7px 16px; cursor:pointer; } .ds-btn-danger:hover { background:#FBE9E7; border-color:#B42318; } .ds-btn-danger:focus-visible { outline:2px solid rgba(11,81,55,0.4); outline-offset:1px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "40px field with a SemiBold 13 label above, 6px gap.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Location</span><input class=\"ds-input\" placeholder=\"Search bin ID, type or location\"></label>",
+      "css": ".ds-field { display:flex; flex-direction:column; gap:6px; font-family: Overpass, sans-serif; } .ds-field-label { font-weight:600; font-size:13px; color:#43534A; } .ds-input { font-family: Overpass, sans-serif; font-size:14px; height:40px; box-sizing:border-box; padding:6px 10px; background:#FFFFFF; color:#17231C; border:1px solid #828D86; border-radius:8px; } .ds-input::placeholder { color:#5D6B63; } .ds-input:focus-visible { outline:2px solid rgba(11,81,55,0.4); border-color:#0B5137; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented-control",
+      "description": "Mutually exclusive filters, theme and speed; selected option is a sign-green plate.",
+      "html": "<div class=\"ds-seg\"><button class=\"ds-seg-opt ds-on\">All</button><button class=\"ds-seg-opt\">Critical</button><button class=\"ds-seg-opt\">Due</button></div>",
+      "css": ".ds-seg { display:inline-flex; gap:2px; padding:3px; background:#FFFFFF; border:1px solid #828D86; border-radius:10px; } .ds-seg-opt { font-family: Overpass, sans-serif; font-weight:600; font-size:13px; color:#43534A; background:transparent; border:0; border-radius:7px; padding:7px 14px; cursor:pointer; } .ds-seg-opt:hover { background:#F7F8F6; } .ds-seg-opt.ds-on { background:#0B5137; color:#FFFFFF; } .ds-seg-opt:focus-visible { outline:2px solid #0B5137; }"
+    },
+    {
+      "name": "Sign Rail Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Guide-sign rail; the active page is the reserved white plate.",
+      "html": "<nav class=\"ds-rail\"><div class=\"ds-rail-brand\">GreenPulse</div><a class=\"ds-nav ds-active\">Monitor</a><a class=\"ds-nav\">Analytics</a><a class=\"ds-nav\">Dispatch</a></nav>",
+      "css": ".ds-rail { font-family: Overpass, sans-serif; width:228px; padding:14px; background:#0B5137; border-radius:16px; box-shadow: inset 0 0 0 10px #0B5137, inset 0 0 0 11.5px #FFFFFF; display:flex; flex-direction:column; gap:2px; } .ds-rail-brand { font-weight:800; font-size:24px; color:#FFFFFF; padding:4px 12px 20px; } .ds-nav { font-weight:600; font-size:15px; color:#FFFFFF; padding:10px 12px; border-radius:8px; cursor:pointer; } .ds-nav:hover { background:#11613F; } .ds-nav.ds-active { background:#FFFFFF; color:#0B5137; } .ds-nav:focus-visible { outline:1px solid #CFE3D6; background:#11613F; }"
+    },
+    {
+      "name": "Gantry Sign with Exit Panel",
+      "kind": "custom",
+      "refersTo": "sign-panel",
+      "description": "Fleet counts plus the yellow NEXT tab and the next action, opening Dispatch.",
+      "html": "<div class=\"ds-gantry\"><div class=\"ds-counts\"><div><b>2</b><span>active bins</span></div><div><b>1</b><span>critical</span></div></div><button class=\"ds-exit\"><span class=\"ds-next\">NEXT</span><span class=\"ds-exit-line\">Dispatch 1 critical bin →</span></button></div>",
+      "css": ".ds-gantry { font-family: Overpass, sans-serif; display:flex; background:#0B5137; border-radius:16px; padding:7px; color:#FFFFFF; } .ds-counts { flex:1; display:flex; gap:24px; padding:24px 28px; border:1.5px solid #FFFFFF; border-right:0; border-radius:10px 0 0 10px; } .ds-counts b { display:block; font-weight:800; font-size:42px; } .ds-counts span { font-weight:600; font-size:15px; color:#CFE3D6; } .ds-exit { font-family: Overpass, sans-serif; width:300px; text-align:left; background:transparent; color:#FFFFFF; border:1.5px solid #FFFFFF; border-left-width:2px; border-radius:0 10px 10px 0; padding:20px; cursor:pointer; } .ds-exit:hover, .ds-exit:focus-visible { background:#11613F; } .ds-next { display:inline-block; background:#F2B705; color:#17231C; font-weight:700; font-size:13px; border-radius:6px; padding:3px 8px; } .ds-exit-line { display:block; margin-top:12px; font-weight:700; font-size:23px; }"
+    },
+    {
+      "name": "Bin Code Chip and Status Plates",
+      "kind": "chip",
+      "refersTo": "bin-code-chip",
+      "description": "One mono chip for every bin ID; sign-class status plates.",
+      "html": "<span class=\"ds-code\">BIN-CB-1164</span> <span class=\"ds-status ds-crit\">Critical</span> <span class=\"ds-status ds-due\">Due</span> <span class=\"ds-status ds-ok\">Normal</span>",
+      "css": ".ds-code { font-family:'Overpass Mono', monospace; font-weight:600; font-size:13px; color:#17231C; background:#F7F8F6; border:1px solid #D5DCD6; border-radius:6px; padding:0 7px; line-height:22px; display:inline-block; } .ds-status { font-family:Overpass, sans-serif; font-weight:700; font-size:13px; border-radius:6px; padding:0 10px; line-height:24px; display:inline-block; } .ds-crit { background:#B42318; color:#FFFFFF; } .ds-due { background:#F2B705; color:#17231C; } .ds-ok { background:#E3EEE7; color:#0B5137; }"
+    },
+    {
+      "name": "Plate",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "White working surface with a 1px hairline; no shadow.",
+      "html": "<section class=\"ds-plate\"><h3>Fill level over time</h3><p>Average fill of the bins in view, by bin type</p></section>",
+      "css": ".ds-plate { font-family: Overpass, sans-serif; background:#FFFFFF; border:1px solid #D5DCD6; border-radius:12px; padding:24px; } .ds-plate h3 { margin:0 0 2px; font-weight:700; font-size:17px; color:#17231C; } .ds-plate p { margin:0; font-size:13px; color:#5D6B63; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Road Guide Sign",
+    "overview": "The console reads like the road the collection trucks drive. A sign-green rail on the left is drawn as a real guide sign: a flat green panel, an inset white legend border, white legends, and a faint retroreflective prism lattice in the sheeting. Across the top of Monitor an overhead gantry sign carries the fleet counts in big white figures, and its exit panel tells the dispatcher where to go next. Everything else sits on a pale, green-tinted ground on white working plates with 1px hairlines. That is how a reflective sign panel separates from the verge.\n\nThe system is an operator's desk tool built to hold up on a projector. It is dense but readable: 40px table rows, 14px body text, figures in Overpass Mono so columns line up, and every text pair at WCAG AA or better. Colour does work and never decorates. It follows the classes a driver already knows: regulatory red for critical, advisory yellow with black ink for due, guide green for normal. Service blue and tourist brown are kept for the two data series, recycling and compost. The night theme is the same sign seen at night. The sign panels stay sign green, the ground drops to a near-black green, and the state and series colours lighten so they stay legible.\n\nThe build deliberately turns away from the category default: a slate sidebar, an emerald accent, and four KPI cards with coloured left borders.",
+    "keyCharacteristics": [
+      "One flat sign green (#0B5137) for every sign panel, in both themes.",
+      "A prism lattice on the ground and on signs. It is sheeting texture, never a pattern for its own sake.",
+      "White plates with hairlines carry all working content. Colour lives inside bounded plates.",
+      "Overpass for every word, Overpass Mono for every bin code and figure.",
+      "An authored 18-unit icon set with a 1.75 round stroke, drawn in Java2D.",
+      "Light (day) and dark (night) themes, switched live. Every component re-reads its token on the switch."
+    ],
+    "rules": [
+      {
+        "name": "The Plate Rule",
+        "body": "Colour appears only inside a bounded shape: a sign panel, a status plate, a chip, a bar, a button, a chart on its plate. The ground and the page header stay neutral. The login window is the one full-bleed sign, and it is still a sign.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Marking Rule",
+        "body": "Only one reserved marking exists per job. The white plate on the green rail marks the current page. The yellow NEXT tab on the gantry marks the next action. Nothing else may wear the white-on-rail plate, and yellow fills appear only on the NEXT tab and the Due status.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Ramp Rule",
+        "body": "Every neutral comes from the single green-tinted GP ramp (ground, surface, surface-2, line, line-2, ink, ink-2, ink-3, plus control-border). No cool slate greys and no pure #000.",
+        "section": "colors"
+      },
+      {
+        "name": "The Contrast Floor Rule",
+        "body": "Text meets WCAG AA (4.5:1 body; every recorded text pair clears it in both themes). Control borders hold at least 3:1 against what they sit on. The night control border (#5F7066) sits exactly at 3.0:1 on the night input fill, which is the floor, not headroom.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Figure Rule",
+        "body": "Every number a dispatcher compares (fill, priority, reading, coordinate, axis tick) is set in Overpass Mono and right-aligned in tables. Big hero counts stay in Overpass ExtraBold.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence Case Rule",
+        "body": "Legends, buttons and badges are sentence case (\"Critical\", \"Mark collected\"). The NEXT tab is the one uppercase legend, because it copies the exit tab on a real sign.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Sheeting Rule",
+        "body": "No drop shadows on plates, signs, chips or buttons. If something needs to read as separate, give it a plate and a hairline.",
+        "section": "elevation"
+      },
+      {
+        "name": "The One Code Rule",
+        "body": "A bin ID is always Overpass Mono SemiBold 13 on a 24px surface-2 chip with a 1px line border and 6px corners (white when its row is selected). This applies in the Monitor table and both Analytics tables. New surfaces showing a bin ID in a table or list must use this chip.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** read every colour through a GP token (`Theme.color`, `Theme.bg`, `Theme.fg`, `Theme.onThemeChange`) so it re-applies on the live theme switch, and define new tokens in both FlatLightLaf and FlatDarkLaf properties.",
+      "**Do** put working content on a Plate (surface, 1px line, 12px) on the lattice ground, and put sign-class colour only inside a bounded plate, chip, bar or sign.",
+      "**Do** keep a single reserved marking: the white plate in the rail for the current page, and the yellow NEXT tab for the next action.",
+      "**Do** isolate the destructive action. It goes last in its row, behind a 24px gap, as an outlined Danger button in regulatory-red-text, never filled.",
+      "**Do** render every bin ID with the one mono chip, and every compared figure in Overpass Mono, right-aligned.",
+      "**Do** keep text at WCAG AA or better and control borders at 3:1 or better in both themes, and check night values separately.",
+      "**Do** use the authored 18-unit, 1.75-stroke icon set, and add new glyphs to Icons.java on the same grid and stroke.",
+      "**Do** use the S1–S7 spacing scale (4–48px), with the 40px page gutter as the only exception."
+    ],
+    "donts": [
+      "**Don't** use emoji or Unicode glyphs as icons anywhere in the console chrome.",
+      "**Don't** add eyebrow or kicker labels above titles. The page title and its subtitle carry the context. (The NEXT tab is the sign's exit tab, not an eyebrow.)",
+      "**Don't** build cards with coloured left borders, or a row of KPI cards striped in accent colours. (The gantry's white divider separates two zones of one sign. It is not a card stripe.)",
+      "**Don't** introduce neutrals outside the GP ramp, cool slate greys, or a second green.",
+      "**Don't** spend advisory yellow, regulatory red or the white-on-rail plate on decoration, emphasis or branding.",
+      "**Don't** add drop shadows to plates, signs, chips or buttons.",
+      "**Don't** touch the Dispatch map canvas or its behaviour to make it match this system."
+    ]
+  }
+}

@@ -22,7 +22,8 @@ public class LoginFrame extends JFrame {
         setTitle("GreenPulse | Sign in"); setSize(1100, 680); setMinimumSize(new Dimension(940, 600));
         setLocationRelativeTo(null); setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel root = new Ui.Ground(new GridLayout(1, 2));
+        // The whole window is the guide sign; the form sits on a plate fixed to it.
+        JPanel root = new Ui.Sign(new GridLayout(1, 2, Theme.S6, 0), 14, 26).fullBleed(Theme.SIGN_LATTICE_STRONG);
         root.add(createBrandSign());
         root.add(createForm());
         setContentPane(root);
@@ -31,7 +32,8 @@ public class LoginFrame extends JFrame {
 
     /** The left half: a guide sign naming the three jobs GreenPulse does, with the demo accounts at its foot. */
     private JComponent createBrandSign() {
-        JPanel sign = new Ui.Sign(new BorderLayout(0, Theme.S5), 14, 30);
+        JPanel sign = Ui.transparent(new BorderLayout(0, Theme.S5));
+        sign.setBorder(new EmptyBorder(Theme.S2, Theme.S2, Theme.S2, 0));
 
         JPanel lockup = Ui.column(
                 Ui.label("GreenPulse", Theme.heavy(34), Theme.SIGN_INK),
@@ -57,11 +59,7 @@ public class LoginFrame extends JFrame {
         sign.add(lockup, BorderLayout.NORTH);
         sign.add(middle, BorderLayout.CENTER);
         sign.add(foot, BorderLayout.SOUTH);
-
-        JPanel frame = Ui.transparent(new BorderLayout());
-        frame.setBorder(new EmptyBorder(Theme.S4, Theme.S4, Theme.S4, 0));
-        frame.add(sign);
-        return frame;
+        return sign;
     }
 
     private JComponent destination(String text, double arrowDegrees, boolean ruleBelow) {
@@ -124,22 +122,23 @@ public class LoginFrame extends JFrame {
                 Ui.caption("Protected access for GreenPulse waste operations staff."));
         form.setPreferredSize(new Dimension(360, form.getPreferredSize().height));
 
-        JPanel center = Ui.transparent(new GridBagLayout());
-        center.setBorder(new EmptyBorder(Theme.S6, Theme.S7, Theme.S6, Theme.S7));
+        JPanel plate = new Ui.Plate(new GridBagLayout(), 0);
+        plate.setBorder(new EmptyBorder(Theme.S6, 44, Theme.S6, 44));
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
-        center.add(form, c);
-        return center;
+        plate.add(form, c);
+        return plate;
     }
 
     private JButton createDemoButton(String role, String username, String password) {
         JButton btn = new JButton(role);
         btn.setFont(Theme.semibold(14));
-        btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setToolTipText("Sign in as the " + role.toLowerCase() + " demo account");
-        btn.putClientProperty("FlatLaf.style", "background: #08402B; foreground: #FFFFFF; borderColor: #CFE3D6;"
-                + " hoverBackground: #11613F; hoverBorderColor: #FFFFFF; pressedBackground: #062F20; focusedBorderColor: #FFFFFF");
+        Theme.onThemeChange(btn, () -> btn.putClientProperty("FlatLaf.style", "background: " + Ui.hex(Theme.color(Theme.SIGN_DEEP))
+                + "; foreground: " + Ui.hex(Theme.color(Theme.SIGN_INK)) + "; borderColor: " + Ui.hex(Theme.color(Theme.SIGN_INK2))
+                + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SIGN_HOVER)) + "; hoverBorderColor: " + Ui.hex(Theme.color(Theme.SIGN_INK))
+                + "; pressedBackground: " + Ui.hex(Theme.color(Theme.SIGN)) + "; focusedBorderColor: " + Ui.hex(Theme.color(Theme.SIGN_INK))));
         btn.addActionListener(e -> { txtUsername.setText(username); txtPassword.setText(password); performLogin(); });
         return btn;
     }

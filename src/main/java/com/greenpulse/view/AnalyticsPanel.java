@@ -8,6 +8,7 @@ import com.greenpulse.analytics.AnalyticsCalculator.WaitStats;
 import com.greenpulse.analytics.AnalyticsData;
 import com.greenpulse.analytics.AnalyticsDataSource;
 import com.greenpulse.analytics.FillForecaster;
+import com.greenpulse.analytics.PlainLanguage;
 import com.greenpulse.dao.AnalyticsDAO;
 import com.greenpulse.model.BinType;
 import com.greenpulse.model.CollectionPolicy;
@@ -72,17 +73,34 @@ public class AnalyticsPanel extends JPanel {
         @Override public Class<?> getColumnClass(int c) { return c == 4 ? Integer.class : String.class; }
     };
 
-    public AnalyticsPanel(List<SmartBin> bins, Runnable onBackAction) {
-        this(bins, new AnalyticsDAO());
+    // Simple view (staff and drivers): plain-language answers instead of charts and percentages.
+    private final boolean simple;
+    private final Runnable onOpenDispatch;
+    private final JPanel answers = new JPanel();
+    private final JPanel watchList = new JPanel();
+
+    public AnalyticsPanel(List<SmartBin> bins, Runnable onOpenDispatch) {
+        this(bins, onOpenDispatch, false);
+    }
+
+    /** @param simple true for the plain-language view (staff and drivers), false for the detailed operator view */
+    public AnalyticsPanel(List<SmartBin> bins, Runnable onOpenDispatch, boolean simple) {
+        this(bins, new AnalyticsDAO(), onOpenDispatch, simple);
     }
 
     public AnalyticsPanel(List<SmartBin> bins, AnalyticsDataSource dataSource) {
+        this(bins, dataSource, null, false);
+    }
+
+    AnalyticsPanel(List<SmartBin> bins, AnalyticsDataSource dataSource, Runnable onOpenDispatch, boolean simple) {
         this.currentBins = bins == null ? new ArrayList<>() : new ArrayList<>(bins);
         this.dataSource = dataSource;
+        this.onOpenDispatch = onOpenDispatch;
+        this.simple = simple;
         setLayout(new BorderLayout(0, Theme.S5));
         setOpaque(false);
         setBorder(BorderFactory.createEmptyBorder(Theme.S6, 40, Theme.S4, 40));
-        buildUi();
+        if (simple) buildSimpleUi(); else buildUi();
         rebuildFilterChoices();
         render();
 
@@ -237,6 +255,179 @@ public class AnalyticsPanel extends JPanel {
         return card;
     }
 
+    // ------------------------------------------------------------------ simple view (staff and drivers)
+
+    private void buildSimpleUi() {
+        periodBox.setSelectedIndex(1);
+        Ui.Segmented period = new Ui.Segmented("Last 24 hours", "Last 7 days");
+        period.onSelect(i -> { periodBox.setSelectedIndex(i == 0 ? 1 : 2); reload(); });
+        add(Ui.pageHeader("Analytics", "A quick summary of how collection is going.", period), BorderLayout.NORTH);
+
+        answers.setOpaque(false);
+        answers.setLayout(new BoxLayout(answers, BoxLayout.Y_AXIS));
+        JPanel answersPlate = new Ui.Plate(new BorderLayout(), 1);
+        answersPlate.add(answers);
+
+        watchList.setOpaque(false);
+        watchList.setLayout(new BoxLayout(watchList, BoxLayout.Y_AXIS));
+        JPanel watchPlate = new Ui.Plate(new BorderLayout(0, Theme.S3), Theme.S5);
+        watchPlate.add(Ui.plateHeader("Bins to watch", "The bins that need attention first"), BorderLayout.NORTH);
+        watchPlate.add(watchList, BorderLayout.CENTER);
+
+        JPanel content = Ui.column(answersPlate, Box.createVerticalStrut(Theme.S4), watchPlate, Box.createVerticalStrut(Theme.S4));
+        JPanel body = new Ui.ScrollBody(new BorderLayout());
+        body.add(new SimulatePanel.MaxWidth(content, 980), BorderLayout.NORTH);
+        add(Ui.scroll(body), BorderLayout.CENTER);
+        add(lblStatus, BorderLayout.SOUTH);
+    }
+
+    /** Rebuilds the simple view's answers from the same figures the detailed view uses. History may be missing (null). */
+    private void renderSimple(List<SmartBin> selected, CollectionStats collections, WaitStats waits, List<FillForecaster.Entry> forecasts) {
+        answers.removeAll();
+        String period = periodBox.getSelectedIndex() == 2 ? "in the last 7 days" : "in the last 24 hours";
+        List<SmartBin> critical = selected.stream().filter(CollectionPolicy::isCritical).toList();
+        long due = selected.stream().filter(b -> !CollectionPolicy.isCritical(b) && CollectionPolicy.needsRoute(b)).count();
+
+        // 1. Is there anything to collect?
+        if (!critical.isEmpty()) {
+            List<String> places = critical.stream().map(SmartBin::getLocation).distinct().toList();
+            String where = places.size() <= 2 ? String.join(" and ", places) : places.get(0) + ", " + places.get(1) + " and " + (places.size() - 2) + " more";
+            addAnswer(Icons.Glyph.WARNING, Theme.CRITICAL_TEXT, PlainLanguage.bins(critical.size()) + (critical.size() == 1 ? " needs" : " need") + " collecting now.",
+                    "At " + where + ".", dispatchButton());
+        } else if (due > 0) {
+            addAnswer(Icons.Glyph.DISPATCH, Theme.WARNING_TEXT, PlainLanguage.bins((int) due) + (due == 1 ? " is" : " are") + " ready for the next route.",
+                    "None are almost full yet, so there is no rush.", dispatchButton());
+        } else {
+            addAnswer(Icons.Glyph.CHECK, Theme.OK_TEXT, "No bins need collecting right now.",
+                    selected.isEmpty() ? "No bins are registered yet." : "Every bin is below the pickup level.", null);
+        }
+
+        // 2. What fills up next?
+        if (history == null) {
+            addAnswer(Icons.Glyph.INFO, Theme.INK3, "Forecasts are not available yet.", "They appear once the reading history has loaded.", null);
+        } else {
+            FillForecaster.Entry next = forecasts.stream().filter(e -> e.forecast().status() == FillForecaster.Status.RISING).findFirst().orElse(null);
+            if (next != null) {
+                addAnswer(Icons.Glyph.ANALYTICS, Theme.INK2, "The next bin will be almost full in " + PlainLanguage.duration(next.forecast().secondsToCritical()) + ".",
+                        next.bin().getBinID() + " at " + next.bin().getLocation() + ".", null);
+            } else {
+                addAnswer(Icons.Glyph.ANALYTICS, Theme.INK2, "No bin is filling up quickly right now.",
+                        forecasts.isEmpty() ? "There are no bins to forecast yet." : "Fill levels have been steady " + period + ".", null);
+            }
+        }
+
+        // 3. How full are bins overall?
+        if (!selected.isEmpty()) {
+            double avg = selected.stream().mapToDouble(SmartBin::getFillPercentage).average().orElse(Double.NaN);
+            Map<BinType, TypeSummary> s = AnalyticsCalculator.summarise(selected);
+            TypeSummary rec = s.get(BinType.RECYCLING), com = s.get(BinType.COMPOST);
+            String compare;
+            if (rec.bins() > 0 && com.bins() > 0) {
+                double diff = com.avgFill() - rec.avgFill();
+                compare = Math.abs(diff) < 5 ? "Recycling and compost bins are about equally full."
+                        : (diff > 0 ? "Compost bins are fuller than recycling bins." : "Recycling bins are fuller than compost bins.");
+            } else {
+                compare = "All of them are " + (rec.bins() > 0 ? "recycling" : "compost") + " bins.";
+            }
+            addAnswer(Icons.Glyph.MONITOR, Theme.INK2, "Bins are " + PlainLanguage.fillLevel(avg) + " on average.", compare, null);
+        }
+
+        // 4. Are collections keeping up?
+        if (collections != null) {
+            if (collections.count() == 0) {
+                addAnswer(Icons.Glyph.CHECK, Theme.INK2, "No bins were emptied " + period + ".",
+                        "Collections show up here after a route stop or Mark collected.", null);
+            } else {
+                double before = collections.avgFillBefore();
+                String how = before >= 95 ? "They were usually overflowing when collected, so trucks could go a little sooner."
+                        : before < 50 ? "They were often less than half full, so some trips could wait."
+                        : "They were usually almost full when collected, which is about right.";
+                addAnswer(Icons.Glyph.CHECK, Theme.OK_TEXT, PlainLanguage.capitalise(PlainLanguage.bins(collections.count())) + " emptied " + period + ".", how, null);
+            }
+        }
+
+        // 5. Is anything left waiting?
+        if (waits != null) {
+            if (waits.stillWaiting() > 0) {
+                int n = waits.stillWaiting();
+                addAnswer(Icons.Glyph.WARNING, Theme.WARNING_TEXT,
+                        n == 1 ? "1 almost-full bin has been waiting for " + PlainLanguage.duration(waits.longestWaitingSeconds()) + "."
+                               : n + " almost-full bins are waiting, the longest for " + PlainLanguage.duration(waits.longestWaitingSeconds()) + ".",
+                        "Collect these first to avoid overflow.", null);
+            } else if (waits.completed() > 0) {
+                addAnswer(Icons.Glyph.CHECK, Theme.INK2, "Almost-full bins were collected within " + PlainLanguage.duration(waits.avgCompletedSeconds()) + " on average.",
+                        "No almost-full bin is waiting right now.", null);
+            }
+        }
+
+        // Bins to watch
+        watchList.removeAll();
+        List<SmartBin> top = AnalyticsCalculator.topByPriority(selected, 5);
+        if (top.isEmpty()) watchList.add(Ui.body("No bins are registered yet."));
+        for (int i = 0; i < top.size(); i++) watchList.add(watchRow(top.get(i), i == 0));
+
+        answers.revalidate(); answers.repaint();
+        watchList.revalidate(); watchList.repaint();
+        lblStatus.setText("Updated " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) + " · refreshes automatically while this page is open");
+    }
+
+    private JButton dispatchButton() {
+        if (onOpenDispatch == null) return null;
+        JButton b = Ui.primary("Open Dispatch", Icons.Glyph.ARROW_RIGHT);
+        b.setHorizontalTextPosition(SwingConstants.LEFT);
+        b.addActionListener(e -> onOpenDispatch.run());
+        return b;
+    }
+
+    /** One plain-language answer: an icon, a short headline sentence and one line of detail. */
+    private void addAnswer(Icons.Glyph glyph, String colorKey, String headline, String detail, JComponent action) {
+        JPanel row = Ui.transparent(new BorderLayout(Theme.S4, 0));
+        row.setBorder(BorderFactory.createCompoundBorder(
+                answers.getComponentCount() == 0 ? BorderFactory.createEmptyBorder() : Ui.hairline(Theme.LINE2, 1, 0, 0, 0),
+                BorderFactory.createEmptyBorder(Theme.S5, Theme.S5, Theme.S5, Theme.S5)));
+        JLabel icon = new JLabel(Icons.of(glyph, 24, colorKey));
+        icon.setVerticalAlignment(SwingConstants.TOP);
+        icon.setBorder(BorderFactory.createEmptyBorder(1, 0, 0, 0));
+        row.add(icon, BorderLayout.WEST);
+        row.add(Ui.column(Ui.label(headline, Theme.bold(19), Theme.INK), Box.createVerticalStrut(Theme.S1),
+                Ui.label(Ui.wrap(detail, 560), Theme.regular(15), Theme.INK2)), BorderLayout.CENTER);
+        if (action != null) {
+            JPanel holder = Ui.transparent(new GridBagLayout());
+            holder.add(action);
+            row.add(holder, BorderLayout.EAST);
+        }
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        answers.add(row);
+    }
+
+    private JComponent watchRow(SmartBin bin, boolean first) {
+        boolean isCritical = CollectionPolicy.isCritical(bin), isDue = !isCritical && CollectionPolicy.needsRoute(bin);
+        JPanel code = Ui.transparent(new BorderLayout());
+        code.add(Ui.codeChip(bin.getBinID()), BorderLayout.WEST);
+        code.setPreferredSize(new Dimension(140, 28));
+        JLabel place = Ui.label(bin.getLocation(), Theme.regular(15), Theme.INK);
+        JLabel level = Ui.label(PlainLanguage.capitalise(PlainLanguage.fillLevel(bin.getFillPercentage())), Theme.regular(15), Theme.INK2);
+        level.setHorizontalAlignment(SwingConstants.RIGHT);
+        level.setPreferredSize(new Dimension(150, 26));
+        JComponent badge = Ui.badge(isCritical ? "Collect now" : isDue ? "Next route" : "Fine",
+                isCritical ? Theme.CRITICAL : isDue ? Theme.WARNING : Theme.OK_SOFT,
+                isCritical ? Theme.CRITICAL_INK : isDue ? Theme.WARNING_INK : Theme.OK_TEXT);
+        badge.setPreferredSize(new Dimension(112, 26));
+
+        JPanel right = Ui.transparent(new FlowLayout(FlowLayout.RIGHT, Theme.S4, 0));
+        right.add(level);
+        right.add(badge);
+        JPanel row = Ui.transparent(new BorderLayout(Theme.S4, 0));
+        row.setBorder(BorderFactory.createCompoundBorder(first ? BorderFactory.createEmptyBorder() : Ui.hairline(Theme.LINE2, 1, 0, 0, 0),
+                BorderFactory.createEmptyBorder(Theme.S3, 0, Theme.S3, 0)));
+        row.add(code, BorderLayout.WEST);
+        row.add(place, BorderLayout.CENTER);
+        row.add(right, BorderLayout.EAST);
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, row.getPreferredSize().height));
+        return row;
+    }
+
     // ------------------------------------------------------------------ data loading
 
     private void reload() {
@@ -327,6 +518,7 @@ public class AnalyticsPanel extends JPanel {
             collectionChart.setData(new int[COLLECTION_BUCKETS], 0, 1, "History is not available yet.");
             forecastModel.setRowCount(0);
             lblInsights.setText(html("<p>History is not available yet. Current-state figures are still shown.</p>"));
+            if (simple) renderSimple(selected, null, null, List.of());
             return;
         }
 
@@ -365,6 +557,7 @@ public class AnalyticsPanel extends JPanel {
                 "%d readings analysed (%s) • updated %s • updates automatically while this page is open",
                 readings, chkSimulated.isSelected() ? "includes simulated data" : "simulated data excluded",
                 LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))));
+        if (simple) renderSimple(selected, collections, waits, forecasts);
     }
 
     private void renderComparison(List<SmartBin> selected) {
