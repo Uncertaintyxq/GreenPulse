@@ -1,0 +1,45 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;font-family:Inter,sans-serif;background:#F6F7F9;color:#111827;display:flex}
+aside{width:240px;background:#fff;border-right:1px solid #E5E7EB;padding:22px 14px}
+aside b{display:block;font-size:20px;padding:0 10px 24px}
+aside span{display:block;padding:10px 12px;border-radius:8px;font-size:14px;color:#374151;margin-bottom:2px}
+aside span.on{background:#F0FDF4;color:#15803D;font-weight:600}
+main{flex:1;padding:28px 36px;display:flex;flex-direction:column;gap:22px}
+h1{font-size:26px;font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:20px}
+.kpi small{font-size:13px;color:#6B7280}
+.kpi b{display:block;font-size:32px;margin-top:6px}
+.tools{display:flex;gap:10px}
+.tools div{height:40px;background:#fff;border:1px solid #D1D5DB;border-radius:8px}
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;padding:13px 18px;font-size:12px;color:#6B7280;border-bottom:1px solid #E5E7EB}
+td{padding:14px 18px;border-bottom:1px solid #F3F4F6}
+.p{padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600}
+.r{background:#FEE2E2;color:#B91C1C}.g{background:#DCFCE7;color:#15803D}
+</style></head><body>
+<aside><b>GreenPulse</b><span class="on">Monitor</span><span>Analytics</span><span>Sensor simulation</span><span>Dispatch</span><span>Register bin</span><span>Profile</span></aside>
+<main>
+<h1>Monitor</h1>
+<div class="kpis">
+<div class="kpi"><small>Active bins</small><b>24</b></div>
+<div class="kpi"><small>Critical</small><b>3</b></div>
+<div class="kpi"><small>Normal</small><b>21</b></div>
+<div class="kpi"><small>Average fill</small><b>46%</b></div>
+</div>
+<div class="tools"><div style="width:320px"></div><div style="width:380px"></div><div style="flex:1;border:0;background:none"></div><div style="width:150px;background:#16A34A;border:0"></div></div>
+<div class="card"><table>
+<tr><th>Bin</th><th>Type</th><th>Location</th><th>Fill</th><th>Priority</th><th>Status</th></tr>
+<tr><td>BIN-CB-4821</td><td>Compost</td><td>Bankerohan Public Market</td><td>94%</td><td>91</td><td><span class="p r">Critical</span></td></tr>
+<tr><td>BIN-RB-1107</td><td>Recycling</td><td>Roxas Night Market</td><td>88%</td><td>84</td><td><span class="p r">Critical</span></td></tr>
+<tr><td>BIN-RB-3390</td><td>Recycling</td><td>People's Park, east gate</td><td>76%</td><td>68</td><td><span class="p g">Normal</span></td></tr>
+<tr><td>BIN-CB-2054</td><td>Compost</td><td>Barangay 23-C Hall</td><td>41%</td><td>37</td><td><span class="p g">Normal</span></td></tr>
+<tr><td>BIN-RB-6612</td><td>Recycling</td><td>SM Lanang, Lot B</td><td>22%</td><td>18</td><td><span class="p g">Normal</span></td></tr>
+</table></div>
+</main>
+</body></html>

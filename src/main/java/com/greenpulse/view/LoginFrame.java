@@ -1,78 +1,186 @@
 package com.greenpulse.view;
 
 import com.greenpulse.model.User;
+import com.greenpulse.view.Icons.Glyph;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Path2D;
 
 public class LoginFrame extends JFrame {
     private JTextField txtUsername;
     private JPasswordField txtPassword;
     private JLabel lblError;
-    private static final Color GREEN = new Color(5, 150, 105);
-    private static final Color INK = new Color(24, 39, 55);
-    private static final Color MUTED = new Color(100, 116, 139);
+    private JButton btnLogin;
+    private boolean signingIn = false;
 
     public LoginFrame() { initUI(); }
 
     private void initUI() {
-        setTitle("GreenPulse | Sign in"); setSize(940, 580); setMinimumSize(new Dimension(820, 520));
+        setTitle("GreenPulse | Sign in"); setSize(1100, 680); setMinimumSize(new Dimension(940, 600));
         setLocationRelativeTo(null); setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JPanel root = new JPanel(new GridLayout(1, 2)); root.setBackground(Color.WHITE);
 
-        JPanel brand = new JPanel(new BorderLayout(0, 24)); brand.setBackground(new Color(15, 35, 45));
-        brand.setBorder(new EmptyBorder(42, 42, 36, 42));
-        JPanel brandTop = new JPanel(); brandTop.setOpaque(false); brandTop.setLayout(new BoxLayout(brandTop, BoxLayout.Y_AXIS));
-        JLabel logo = new JLabel("♻  GreenPulse"); logo.setFont(new Font("SansSerif", Font.BOLD, 29)); logo.setForeground(new Color(52, 211, 153));
-        JLabel kicker = new JLabel("SMART WASTE OPERATIONS"); kicker.setFont(new Font("SansSerif", Font.BOLD, 10)); kicker.setForeground(new Color(148, 163, 184));
-        brandTop.add(logo); brandTop.add(Box.createVerticalStrut(10)); brandTop.add(kicker);
-        JLabel intro = new JLabel("<html><div style='width:290px;line-height:1.5;color:#dbeafe;font-size:16px'><b>A cleaner way to manage collection.</b><br><br><span style='font-size:12px;color:#a8bac8'>Monitor smart bins, understand fill levels, and plan collection routes with one simple workspace.</span></div></html>");
-        JPanel brandBottom = new JPanel(); brandBottom.setOpaque(false); brandBottom.setLayout(new BoxLayout(brandBottom, BoxLayout.Y_AXIS));
-        JLabel demoTitle = new JLabel("QUICK DEMO ACCESS"); demoTitle.setFont(new Font("SansSerif", Font.BOLD, 10)); demoTitle.setForeground(new Color(148, 163, 184));
-        brandBottom.add(demoTitle); brandBottom.add(Box.createVerticalStrut(10)); brandBottom.add(createQuickDemoBox());
-        brand.add(brandTop, BorderLayout.NORTH); brand.add(intro, BorderLayout.CENTER); brand.add(brandBottom, BorderLayout.SOUTH);
-
-        JPanel form = new JPanel(); form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS)); form.setBackground(Color.WHITE); form.setBorder(new EmptyBorder(56, 52, 48, 52));
-        JLabel eyebrow = new JLabel("WELCOME BACK"); eyebrow.setFont(new Font("SansSerif", Font.BOLD, 10)); eyebrow.setForeground(GREEN);
-        JLabel title = new JLabel("Sign in to GreenPulse"); title.setFont(new Font("SansSerif", Font.BOLD, 25)); title.setForeground(INK);
-        JLabel sub = new JLabel("Use your account details to continue."); sub.setFont(new Font("SansSerif", Font.PLAIN, 12)); sub.setForeground(MUTED);
-        txtUsername = new JTextField(); txtUsername.setFont(new Font("SansSerif", Font.PLAIN, 14)); txtUsername.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        txtPassword = new JPasswordField(); txtPassword.setFont(new Font("SansSerif", Font.PLAIN, 14)); txtPassword.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        lblError = new JLabel(" "); lblError.setFont(new Font("SansSerif", Font.BOLD, 11)); lblError.setForeground(new Color(190, 24, 93));
-        JButton login = new JButton("Sign in  →"); login.setFont(new Font("SansSerif", Font.BOLD, 13)); login.setBackground(GREEN); login.setForeground(Color.WHITE); login.setFocusPainted(false); login.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); login.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44)); login.addActionListener(e -> performLogin());
-        txtPassword.addActionListener(e -> performLogin()); txtUsername.addActionListener(e -> txtPassword.requestFocusInWindow());
-        form.add(eyebrow); form.add(Box.createVerticalStrut(8)); form.add(title); form.add(Box.createVerticalStrut(8)); form.add(sub); form.add(Box.createVerticalStrut(34));
-        form.add(fieldLabel("Username")); form.add(Box.createVerticalStrut(7)); form.add(txtUsername); form.add(Box.createVerticalStrut(18));
-        form.add(fieldLabel("Password")); form.add(Box.createVerticalStrut(7)); form.add(txtPassword); form.add(Box.createVerticalStrut(10)); form.add(lblError); form.add(Box.createVerticalStrut(15)); form.add(login);
-        JLabel footnote = new JLabel("Protected access · GreenPulse Waste Operations"); footnote.setFont(new Font("SansSerif", Font.PLAIN, 10)); footnote.setForeground(MUTED); footnote.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.add(Box.createVerticalStrut(22)); form.add(footnote);
-        root.add(brand); root.add(form); setContentPane(root); getRootPane().setDefaultButton(login);
+        JPanel root = new Ui.Ground(new GridLayout(1, 2));
+        root.add(createBrandSign());
+        root.add(createForm());
+        setContentPane(root);
+        getRootPane().setDefaultButton(btnLogin);
     }
 
-    private JLabel fieldLabel(String text) { JLabel l = new JLabel(text); l.setFont(new Font("SansSerif", Font.BOLD, 12)); l.setForeground(INK); l.setAlignmentX(Component.LEFT_ALIGNMENT); return l; }
+    /** The left half: a guide sign naming the three jobs GreenPulse does, with the demo accounts at its foot. */
+    private JComponent createBrandSign() {
+        JPanel sign = new Ui.Sign(new BorderLayout(0, Theme.S5), 14, 30);
 
-    private JPanel createQuickDemoBox() {
-        JPanel box = new JPanel(new GridLayout(1, 3, 8, 0)); box.setOpaque(false);
-        box.add(createDemoButton("Admin", "admin", "admin123")); box.add(createDemoButton("Staff", "staff", "staff123")); box.add(createDemoButton("Driver", "driver", "driver123")); return box;
+        JPanel lockup = Ui.column(
+                Ui.label("GreenPulse", Theme.heavy(34), Theme.SIGN_INK),
+                Box.createVerticalStrut(2),
+                Ui.label("Waste collection console", Theme.semibold(15), Theme.SIGN_INK2));
+
+        JPanel destinations = new JPanel(new GridLayout(3, 1));
+        destinations.setOpaque(false);
+        destinations.add(destination("Monitor fill levels", -90, true));
+        destinations.add(destination("Dispatch collection routes", 0, true));
+        destinations.add(destination("Forecast critical bins", -45, false));
+        JPanel middle = Ui.transparent(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
+        middle.add(destinations, c);
+
+        JPanel demo = Ui.transparent(new GridLayout(1, 3, Theme.S2, 0));
+        demo.add(createDemoButton("Admin", "admin", "admin123"));
+        demo.add(createDemoButton("Staff", "staff", "staff123"));
+        demo.add(createDemoButton("Driver", "driver", "driver123"));
+        JPanel foot = Ui.column(Ui.label("Demo accounts", Theme.semibold(13), Theme.SIGN_INK2), Box.createVerticalStrut(Theme.S2), demo);
+
+        sign.add(lockup, BorderLayout.NORTH);
+        sign.add(middle, BorderLayout.CENTER);
+        sign.add(foot, BorderLayout.SOUTH);
+
+        JPanel frame = Ui.transparent(new BorderLayout());
+        frame.setBorder(new EmptyBorder(Theme.S4, Theme.S4, Theme.S4, 0));
+        frame.add(sign);
+        return frame;
+    }
+
+    private JComponent destination(String text, double arrowDegrees, boolean ruleBelow) {
+        JPanel row = Ui.transparent(new BorderLayout(Theme.S4, 0));
+        row.setBorder(BorderFactory.createCompoundBorder(
+                ruleBelow ? Ui.hairline(Theme.SIGN_INK2, 0, 0, 1, 0) : BorderFactory.createEmptyBorder(),
+                new EmptyBorder(Theme.S4, 2, Theme.S4, 2)));
+        row.add(Ui.label(text, Theme.bold(22), Theme.SIGN_INK), BorderLayout.CENTER);
+        row.add(new SignArrow(arrowDegrees), BorderLayout.EAST);
+        return row;
+    }
+
+    /** A filled guide-sign arrow; 0 degrees points right, -90 points up. */
+    private static final class SignArrow extends JComponent {
+        private final double degrees;
+        SignArrow(double degrees) { this.degrees = degrees; setPreferredSize(new Dimension(34, 34)); }
+
+        @Override protected void paintComponent(Graphics g0) {
+            Graphics2D g = (Graphics2D) g0.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            Path2D arrow = new Path2D.Double();
+            arrow.moveTo(-13, -3.5); arrow.lineTo(2, -3.5); arrow.lineTo(2, -10); arrow.lineTo(14, 0);
+            arrow.lineTo(2, 10); arrow.lineTo(2, 3.5); arrow.lineTo(-13, 3.5); arrow.closePath();
+            AffineTransform t = AffineTransform.getTranslateInstance(getWidth() / 2.0, getHeight() / 2.0);
+            t.rotate(Math.toRadians(degrees));
+            g.setColor(Theme.color(Theme.SIGN_INK));
+            g.fill(t.createTransformedShape(arrow));
+            g.dispose();
+        }
+    }
+
+    private JComponent createForm() {
+        txtUsername = Ui.field(new JTextField(), "e.g. admin");
+        txtPassword = Ui.field(new JPasswordField(), null);
+        txtPassword.putClientProperty("JPasswordField.showRevealButton", true);
+        txtPassword.addActionListener(e -> performLogin());
+        txtUsername.addActionListener(e -> txtPassword.requestFocusInWindow());
+
+        lblError = Ui.label(" ", Theme.semibold(13), Theme.CRITICAL_TEXT);
+        btnLogin = Ui.primary("Sign in", null);
+        btnLogin.setFont(Theme.bold(15));
+        btnLogin.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnLogin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        btnLogin.setPreferredSize(new Dimension(320, 46));
+        btnLogin.addActionListener(e -> performLogin());
+
+        JPanel form = Ui.column(
+                Ui.title("Sign in"),
+                Box.createVerticalStrut(Theme.S1),
+                Ui.subtitle("Use your GreenPulse account to continue."),
+                Box.createVerticalStrut(Theme.S6),
+                Ui.labelled("Username", txtUsername),
+                Box.createVerticalStrut(Theme.S4),
+                Ui.labelled("Password", txtPassword),
+                Box.createVerticalStrut(Theme.S3),
+                lblError,
+                Box.createVerticalStrut(Theme.S3),
+                btnLogin,
+                Box.createVerticalStrut(Theme.S5),
+                Ui.caption("Protected access for GreenPulse waste operations staff."));
+        form.setPreferredSize(new Dimension(360, form.getPreferredSize().height));
+
+        JPanel center = Ui.transparent(new GridBagLayout());
+        center.setBorder(new EmptyBorder(Theme.S6, Theme.S7, Theme.S6, Theme.S7));
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
+        center.add(form, c);
+        return center;
     }
 
     private JButton createDemoButton(String role, String username, String password) {
-        JButton btn = new JButton("Use " + role); btn.setFont(new Font("SansSerif", Font.BOLD, 11)); btn.setBackground(new Color(30, 55, 65)); btn.setForeground(new Color(226, 232, 240)); btn.setFocusPainted(false); btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.addActionListener(e -> { txtUsername.setText(username); txtPassword.setText(password); performLogin(); }); return btn;
+        JButton btn = new JButton(role);
+        btn.setFont(Theme.semibold(14));
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setToolTipText("Sign in as the " + role.toLowerCase() + " demo account");
+        btn.putClientProperty("FlatLaf.style", "background: #08402B; foreground: #FFFFFF; borderColor: #CFE3D6;"
+                + " hoverBackground: #11613F; hoverBorderColor: #FFFFFF; pressedBackground: #062F20; focusedBorderColor: #FFFFFF");
+        btn.addActionListener(e -> { txtUsername.setText(username); txtPassword.setText(password); performLogin(); });
+        return btn;
     }
 
     private void performLogin() {
+        if (signingIn) return;
         String username = txtUsername.getText().trim(); String password = new String(txtPassword.getPassword()).trim();
-        if (username.isEmpty() || password.isEmpty()) { lblError.setText("Please enter both your username and password."); return; }
-        try {
-            User loggedUser = new com.greenpulse.dao.UserDAO().authenticate(username, password);
-            if (loggedUser != null) { new MainDashboardFrame(loggedUser).setVisible(true); dispose(); }
-            else lblError.setText("Those details did not match. Please try again.");
-        } catch (Exception ex) { lblError.setText("Cannot connect to MySQL. Check the database settings."); System.err.println("[Login] " + ex.getMessage()); }
+        if (username.isEmpty() || password.isEmpty()) { showError("Enter both your username and password."); return; }
+        setSigningIn(true);
+        // Talk to MySQL off the Swing thread, so the window keeps responding while the connection is made.
+        new SwingWorker<User, Void>() {
+            @Override protected User doInBackground() throws Exception {
+                return new com.greenpulse.dao.UserDAO().authenticate(username, password);
+            }
+            @Override protected void done() {
+                setSigningIn(false);
+                try {
+                    User loggedUser = get();
+                    if (loggedUser != null) { new MainDashboardFrame(loggedUser).setVisible(true); dispose(); }
+                    else { showError("Those details did not match. Check them and try again."); txtPassword.selectAll(); txtPassword.requestFocusInWindow(); }
+                } catch (Exception ex) {
+                    showError("Cannot reach MySQL. Check that the database is running.");
+                    System.err.println("[Login] " + ex.getMessage());
+                }
+            }
+        }.execute();
+    }
+
+    private void setSigningIn(boolean busy) {
+        signingIn = busy;
+        btnLogin.setEnabled(!busy);
+        btnLogin.setText(busy ? "Signing in…" : "Sign in");
+        if (busy) lblError.setText(" ");
+    }
+
+    private void showError(String message) {
+        lblError.setIcon(Icons.of(Glyph.WARNING, 16));
+        lblError.setText(message);
     }
 
     public static void main(String[] args) {
-        try { UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatLightLaf()); } catch (Exception ignored) { }
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
+        com.greenpulse.App.main(args);
     }
 }

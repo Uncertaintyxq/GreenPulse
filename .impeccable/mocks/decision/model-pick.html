@@ -1,0 +1,49 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Archivo+Narrow:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;font-family:Archivo,sans-serif;background:#ECEEEA;color:#1C231F;display:flex;flex-direction:column}
+header{height:64px;background:#26302A;color:#fff;display:flex;align-items:center;padding:0 28px;gap:36px}
+header b{font-size:22px;font-weight:800}
+header nav{display:flex;gap:6px}
+header nav span{padding:8px 14px;font-size:15px;font-weight:600;color:#C9D1CC;border-radius:6px}
+header nav span.on{background:#ECEEEA;color:#26302A}
+main{flex:1;padding:28px 32px;display:flex;flex-direction:column;gap:22px}
+h1{font-size:28px;font-weight:800}
+.bays{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-radius:10px;overflow:hidden}
+.bay{padding:20px 24px;color:#fff;min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
+.bay .k{font-family:'Archivo Narrow',sans-serif;font-size:18px;letter-spacing:.08em}
+.bay b{font-size:46px;font-weight:800;line-height:1}
+.bay small{font-size:15px;opacity:.9}
+.g{background:#2E7D32}.bl{background:#1565C0}.k2{background:#1B1B1B}
+.tools{display:flex;gap:12px}
+.tools div{height:42px;background:#fff;border:1.5px solid #C5CBC6;border-radius:6px}
+.plate{background:#fff;border-radius:10px;overflow:hidden;flex:1}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;padding:14px 18px;font-size:13px;color:#56605A;border-bottom:1px solid #DDE1DD}
+td{padding:15px 18px;border-bottom:1px solid #EEF0EE}
+tr td:first-child{border-left:6px solid transparent}
+tr.c td:first-child{border-left-color:#2E7D32}
+tr.r td:first-child{border-left-color:#1565C0}
+.crit{color:#C62828;font-weight:800}
+</style></head><body>
+<header><b>GreenPulse</b><nav><span class="on">Monitor</span><span>Analytics</span><span>Simulation</span><span>Dispatch</span><span>Register</span><span>Profile</span></nav></header>
+<main>
+<h1>Monitor</h1>
+<div class="bays">
+<div class="bay g"><span class="k">BIODEGRADABLE · COMPOST</span><b>11 bins</b><small>2 critical · avg fill 58%</small></div>
+<div class="bay bl"><span class="k">RECYCLABLE</span><b>13 bins</b><small>1 critical · avg fill 36%</small></div>
+<div class="bay k2"><span class="k">FLEET</span><b>3 critical</b><small>Dispatch a route →</small></div>
+</div>
+<div class="tools"><div style="width:340px"></div><div style="width:420px"></div><div style="flex:1;border:0;background:none"></div><div style="width:160px;background:#26302A"></div></div>
+<div class="plate"><table>
+<tr><th>Bin</th><th>Type</th><th>Location</th><th>Fill</th><th>Priority</th><th>Status</th></tr>
+<tr class="c"><td>BIN-CB-4821</td><td>Compost</td><td>Bankerohan Public Market</td><td>94%</td><td>91</td><td class="crit">Critical</td></tr>
+<tr class="r"><td>BIN-RB-1107</td><td>Recycling</td><td>Roxas Night Market</td><td>88%</td><td>84</td><td class="crit">Critical</td></tr>
+<tr class="r"><td>BIN-RB-3390</td><td>Recycling</td><td>People's Park, east gate</td><td>76%</td><td>68</td><td>Filling</td></tr>
+<tr class="c"><td>BIN-CB-2054</td><td>Compost</td><td>Barangay 23-C Hall</td><td>41%</td><td>37</td><td>Normal</td></tr>
+<tr class="r"><td>BIN-RB-6612</td><td>Recycling</td><td>SM Lanang, Lot B</td><td>22%</td><td>18</td><td>Normal</td></tr>
+</table></div>
+</main>
+</body></html>

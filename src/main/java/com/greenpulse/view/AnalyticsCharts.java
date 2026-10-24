@@ -5,21 +5,22 @@ import com.greenpulse.model.CollectionPolicy;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Path2D;
+import java.awt.geom.RoundRectangle2D;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-/** Small chart components drawn with Java2D, so the analytics page needs no charting library. */
+/**
+ * Small chart components drawn with Java2D, so the analytics page needs no charting library.
+ * Colours are theme tokens read at paint time, so the charts follow light and dark mode.
+ */
 final class AnalyticsCharts {
     private AnalyticsCharts() {}
 
-    private static final Color GRID = new Color(226, 232, 240);
-    private static final Color AXIS_TEXT = new Color(100, 116, 139);
-    private static final Color CRITICAL = new Color(225, 29, 72);
-    private static final Font SMALL = new Font("SansSerif", Font.PLAIN, 10);
-    private static final Font LEGEND = new Font("SansSerif", Font.BOLD, 11);
+    private static Font small() { return Theme.mono(12); }
+    private static Font legend() { return Theme.semibold(13); }
 
     private static String timeLabel(long epoch, long spanSeconds) {
         DateTimeFormatter fmt = spanSeconds <= 36 * 3600L
@@ -28,9 +29,14 @@ final class AnalyticsCharts {
         return fmt.format(Instant.ofEpochSecond(epoch).atZone(ZoneId.systemDefault()));
     }
 
+    private static void prepare(Graphics2D g) {
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    }
+
     private static void drawXAxis(Graphics2D g, Rectangle plot, long start, long end) {
-        g.setFont(SMALL);
-        g.setColor(AXIS_TEXT);
+        g.setFont(small());
+        g.setColor(Theme.color(Theme.INK3));
         FontMetrics fm = g.getFontMetrics();
         int ticks = 4;
         for (int i = 0; i <= ticks; i++) {
@@ -38,25 +44,26 @@ final class AnalyticsCharts {
             String label = timeLabel(epoch, end - start);
             int x = plot.x + plot.width * i / ticks - fm.stringWidth(label) / 2;
             x = Math.max(plot.x - 10, Math.min(x, plot.x + plot.width - fm.stringWidth(label) + 10));
-            g.drawString(label, x, plot.y + plot.height + 16);
+            g.drawString(label, x, plot.y + plot.height + 20);
         }
     }
 
     private static void drawCentered(Graphics2D g, Rectangle plot, String message) {
-        g.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        g.setColor(AXIS_TEXT);
+        g.setFont(Theme.regular(14));
+        g.setColor(Theme.color(Theme.INK3));
         FontMetrics fm = g.getFontMetrics();
         g.drawString(message, plot.x + (plot.width - fm.stringWidth(message)) / 2, plot.y + plot.height / 2);
     }
 
     static final class LineChart extends JComponent {
-        record Series(String name, Color color, double[] values) {}
+        /** One line: its legend name, a colour token and one value per time bucket (NaN where there is no data). */
+        record Series(String name, String colorKey, double[] values) {}
 
         private List<Series> series = List.of();
         private long start, end;
         private String emptyMessage = "";
 
-        LineChart() { setPreferredSize(new Dimension(520, 250)); setOpaque(false); }
+        LineChart() { setPreferredSize(new Dimension(520, 270)); setOpaque(false); }
 
         void setData(List<Series> series, long startEpoch, long endEpoch, String emptyMessage) {
             this.series = series; this.start = startEpoch; this.end = endEpoch; this.emptyMessage = emptyMessage;
@@ -65,24 +72,23 @@ final class AnalyticsCharts {
 
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            Rectangle plot = new Rectangle(38, 30, getWidth() - 38 - 14, getHeight() - 30 - 26);
+            prepare(g);
+            Rectangle plot = new Rectangle(44, 36, getWidth() - 44 - 16, getHeight() - 36 - 30);
             if (plot.width < 20 || plot.height < 20) { g.dispose(); return; }
 
-            g.setFont(SMALL);
+            g.setFont(small());
             FontMetrics fm = g.getFontMetrics();
             for (int v = 0; v <= 100; v += 25) {
                 int y = plot.y + plot.height - (int) Math.round(v / 100.0 * plot.height);
-                g.setColor(GRID);
+                g.setColor(Theme.color(v == 0 ? Theme.LINE : Theme.LINE2));
                 g.drawLine(plot.x, y, plot.x + plot.width, y);
-                g.setColor(AXIS_TEXT);
+                g.setColor(Theme.color(Theme.INK3));
                 String label = v + "%";
-                g.drawString(label, plot.x - 6 - fm.stringWidth(label), y + 4);
+                g.drawString(label, plot.x - 8 - fm.stringWidth(label), y + 4);
             }
             int critY = plot.y + plot.height - (int) Math.round(CollectionPolicy.CRITICAL_FILL / 100.0 * plot.height);
-            g.setColor(CRITICAL);
-            g.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{5f, 4f}, 0f));
+            g.setColor(Theme.color(Theme.CRITICAL_TEXT));
+            g.setStroke(new BasicStroke(1.25f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{6f, 4f}, 0f));
             g.drawLine(plot.x, critY, plot.x + plot.width, critY);
             g.setStroke(new BasicStroke(1f));
             drawXAxis(g, plot, start, end);
@@ -90,6 +96,7 @@ final class AnalyticsCharts {
             boolean any = false;
             int legendX = plot.x;
             for (Series s : series) {
+                Color color = Theme.color(s.colorKey());
                 double[] v = s.values();
                 Path2D.Double path = new Path2D.Double();
                 boolean pen = false;
@@ -103,24 +110,27 @@ final class AnalyticsCharts {
                     any = true;
                 }
                 if (!Double.isNaN(lastValue)) {
-                    g.setColor(s.color());
-                    g.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    g.setColor(color);
+                    g.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                     g.draw(path);
                     g.setStroke(new BasicStroke(1f));
+                    g.setColor(Theme.color(Theme.SURFACE));
+                    g.fillOval(lastX - 6, lastY - 6, 12, 12);
+                    g.setColor(color);
                     g.fillOval(lastX - 4, lastY - 4, 8, 8);
                 }
-                g.setColor(s.color());
-                g.fillOval(legendX, 11, 9, 9);
-                g.setFont(LEGEND);
-                g.setColor(new Color(51, 65, 85));
+                g.setColor(color);
+                g.fillRoundRect(legendX, 8, 14, 4, 2, 2);
+                g.setFont(legend());
+                g.setColor(Theme.color(Theme.INK2));
                 String text = s.name() + (Double.isNaN(lastValue) ? "" : String.format(Locale.US, "  now %.0f%%", lastValue));
-                g.drawString(text, legendX + 14, 20);
-                legendX += 14 + g.getFontMetrics().stringWidth(text) + 18;
+                g.drawString(text, legendX + 20, 15);
+                legendX += 20 + g.getFontMetrics().stringWidth(text) + 24;
             }
-            g.setFont(SMALL);
-            g.setColor(CRITICAL);
+            g.setFont(Theme.semibold(12));
+            g.setColor(Theme.color(Theme.CRITICAL_TEXT));
             String critLabel = (int) CollectionPolicy.CRITICAL_FILL + "% critical";
-            g.drawString(critLabel, plot.x + plot.width - g.getFontMetrics().stringWidth(critLabel), critY - 4);
+            g.drawString(critLabel, plot.x + plot.width - g.getFontMetrics().stringWidth(critLabel), critY - 6);
             if (!any) drawCentered(g, plot, emptyMessage);
             g.dispose();
         }
@@ -130,9 +140,9 @@ final class AnalyticsCharts {
         private int[] counts = new int[0];
         private long start, end;
         private String emptyMessage = "";
-        private final Color barColor;
+        private final String barColorKey;
 
-        BarChart(Color barColor) { this.barColor = barColor; setPreferredSize(new Dimension(380, 220)); setOpaque(false); }
+        BarChart(String barColorKey) { this.barColorKey = barColorKey; setPreferredSize(new Dimension(380, 240)); setOpaque(false); }
 
         void setData(int[] counts, long startEpoch, long endEpoch, String emptyMessage) {
             this.counts = counts; this.start = startEpoch; this.end = endEpoch; this.emptyMessage = emptyMessage;
@@ -141,9 +151,8 @@ final class AnalyticsCharts {
 
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            Rectangle plot = new Rectangle(34, 14, getWidth() - 34 - 12, getHeight() - 14 - 26);
+            prepare(g);
+            Rectangle plot = new Rectangle(38, 16, getWidth() - 38 - 14, getHeight() - 16 - 30);
             if (plot.width < 20 || plot.height < 20) { g.dispose(); return; }
 
             int max = 0;
@@ -151,32 +160,36 @@ final class AnalyticsCharts {
             int step = Math.max(1, (int) Math.ceil(Math.max(max, 4) / 4.0));
             int top = step * 4;
 
-            g.setFont(SMALL);
+            g.setFont(small());
             FontMetrics fm = g.getFontMetrics();
             for (int i = 0; i <= 4; i++) {
                 int y = plot.y + plot.height - (int) Math.round(i / 4.0 * plot.height);
-                g.setColor(GRID);
+                g.setColor(Theme.color(i == 0 ? Theme.LINE : Theme.LINE2));
                 g.drawLine(plot.x, y, plot.x + plot.width, y);
-                g.setColor(AXIS_TEXT);
+                g.setColor(Theme.color(Theme.INK3));
                 String label = String.valueOf(i * step);
-                g.drawString(label, plot.x - 6 - fm.stringWidth(label), y + 4);
+                g.drawString(label, plot.x - 8 - fm.stringWidth(label), y + 4);
             }
             drawXAxis(g, plot, start, end);
 
             if (max == 0) { drawCentered(g, plot, emptyMessage); g.dispose(); return; }
             int n = counts.length;
             double slot = (double) plot.width / n;
-            int barWidth = (int) Math.max(3, slot * 0.62);
+            int barWidth = (int) Math.max(3, slot * 0.6);
             for (int i = 0; i < n; i++) {
                 if (counts[i] == 0) continue;
                 int h = (int) Math.round((double) counts[i] / top * plot.height);
                 int x = plot.x + (int) Math.round(slot * i + (slot - barWidth) / 2);
-                g.setColor(barColor);
-                g.fillRoundRect(x, plot.y + plot.height - h, barWidth, h, 4, 4);
-                g.setColor(new Color(51, 65, 85));
+                g.setColor(Theme.color(barColorKey));
+                g.fill(new RoundRectangle2D.Double(x, plot.y + plot.height - h, barWidth, h + 3, 4, 4));
+                g.setColor(Theme.color(Theme.INK2));
+                g.setFont(Theme.monoBold(12));
                 String label = String.valueOf(counts[i]);
-                g.drawString(label, x + (barWidth - fm.stringWidth(label)) / 2, plot.y + plot.height - h - 3);
+                g.drawString(label, x + (barWidth - g.getFontMetrics().stringWidth(label)) / 2, plot.y + plot.height - h - 5);
+                g.setFont(small());
             }
+            g.setColor(Theme.color(Theme.LINE));
+            g.drawLine(plot.x, plot.y + plot.height, plot.x + plot.width, plot.y + plot.height);
             g.dispose();
         }
     }
