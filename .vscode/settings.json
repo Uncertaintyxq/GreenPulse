@@ -1,0 +1,9 @@
+{
+    // Re-import pom.xml automatically when dependencies change, so the editor never shows stale red errors.
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.maven.enabled": true,
+    "java.import.gradle.enabled": false,
+    "files.exclude": {
+        "**/target": true
+    }
+}

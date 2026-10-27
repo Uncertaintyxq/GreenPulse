@@ -236,7 +236,7 @@ public class AnalyticsPanel extends JPanel {
     }
 
     private static final class Metric {
-        final JLabel value = Ui.label("—", Theme.heavy(30), Theme.INK);
+        final JLabel value = Ui.label("—", Theme.display(30), Theme.INK);
         final JLabel caption = Ui.caption(" ");
     }
 
@@ -390,7 +390,7 @@ public class AnalyticsPanel extends JPanel {
         icon.setBorder(BorderFactory.createEmptyBorder(1, 0, 0, 0));
         row.add(icon, BorderLayout.WEST);
         row.add(Ui.column(Ui.label(headline, Theme.bold(19), Theme.INK), Box.createVerticalStrut(Theme.S1),
-                Ui.label(Ui.wrap(detail, 560), Theme.regular(15), Theme.INK2)), BorderLayout.CENTER);
+                Ui.label(Ui.wrap(detail, 728), Theme.regular(15), Theme.INK2)), BorderLayout.CENTER);
         if (action != null) {
             JPanel holder = Ui.transparent(new GridBagLayout());
             holder.add(action);
@@ -409,9 +409,8 @@ public class AnalyticsPanel extends JPanel {
         JLabel level = Ui.label(PlainLanguage.capitalise(PlainLanguage.fillLevel(bin.getFillPercentage())), Theme.regular(15), Theme.INK2);
         level.setHorizontalAlignment(SwingConstants.RIGHT);
         level.setPreferredSize(new Dimension(150, 26));
-        JComponent badge = Ui.badge(isCritical ? "Collect now" : isDue ? "Next route" : "Fine",
-                isCritical ? Theme.CRITICAL : isDue ? Theme.WARNING : Theme.OK_SOFT,
-                isCritical ? Theme.CRITICAL_INK : isDue ? Theme.WARNING_INK : Theme.OK_TEXT);
+        JComponent badge = Ui.pill(isCritical ? "Collect now" : isDue ? "Next route" : "Fine",
+                isCritical ? Ui.Tone.CRITICAL : isDue ? Ui.Tone.DUE : Ui.Tone.NORMAL);
         badge.setPreferredSize(new Dimension(112, 26));
 
         JPanel right = Ui.transparent(new FlowLayout(FlowLayout.RIGHT, Theme.S4, 0));

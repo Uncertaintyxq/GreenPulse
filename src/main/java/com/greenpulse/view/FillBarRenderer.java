@@ -7,7 +7,7 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
-/** Fill level as a bar plus its figure. Colour follows the collection policy: red critical, amber due, green normal. */
+/** Fill level as a thin bar plus its figure. Colour follows the collection policy: red critical, amber due, green normal. */
 public class FillBarRenderer extends JComponent implements TableCellRenderer {
     private int fill;
     private boolean selected;
@@ -39,7 +39,7 @@ public class FillBarRenderer extends JComponent implements TableCellRenderer {
         FontMetrics fm = g.getFontMetrics();
         String label = fill + "%";
         int textW = fm.stringWidth("100%");
-        int x = 12, barH = 8, barW = Math.max(30, getWidth() - x - textW - 28), y = (getHeight() - barH) / 2;
+        int x = 14, barH = 6, barW = Math.max(30, getWidth() - x - textW - 30), y = (getHeight() - barH) / 2;
         g.setColor(Theme.color(Theme.LINE2));
         g.fill(new RoundRectangle2D.Double(x, y, barW, barH, barH, barH));
         g.setColor(Theme.color(barKey));

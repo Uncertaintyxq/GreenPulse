@@ -6,7 +6,6 @@ import com.greenpulse.view.Icons.Glyph;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 
 /** Table cell renderers shared by the Monitor and Analytics tables. Colours are read as each cell paints. */
 final class Renderers {
@@ -37,15 +36,7 @@ final class Renderers {
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             g.setColor(cellBackground(table, selected));
             g.fillRect(0, 0, getWidth(), getHeight());
-            g.setFont(Theme.monoBold(13));
-            FontMetrics fm = g.getFontMetrics();
-            int w = fm.stringWidth(text) + 14, h = 24, x = 12, y = (getHeight() - h) / 2;
-            g.setColor(Theme.color(selected ? Theme.SURFACE : Theme.SURFACE2));
-            g.fill(new RoundRectangle2D.Double(x, y, w, h, 6, 6));
-            g.setColor(Theme.color(Theme.LINE));
-            g.draw(new RoundRectangle2D.Double(x + 0.5, y + 0.5, w - 1, h - 1, 6, 6));
-            g.setColor(Theme.color(Theme.INK));
-            g.drawString(text, x + 7, y + (h + fm.getAscent() - fm.getDescent()) / 2);
+            Ui.paintCodeChip(g, text, 14, getHeight() / 2, selected);
             g.dispose();
         }
     }
@@ -59,7 +50,7 @@ final class Renderers {
             setForeground(Theme.color(critical ? Theme.CRITICAL_TEXT : Theme.INK));
             setBackground(cellBackground(table, isSelected));
             setHorizontalAlignment(SwingConstants.RIGHT);
-            setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 24));
+            setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 24));
             return this;
         }
     }
@@ -89,10 +80,10 @@ final class Renderers {
 
         @Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             super.getTableCellRendererComponent(table, value, isSelected, false, row, column);
-            setFont(bold ? Theme.semibold(14) : Theme.regular(14));
+            setFont(bold ? Theme.medium(14) : Theme.regular(14));
             setForeground(Theme.color(colorKey));
             setBackground(cellBackground(table, isSelected));
-            setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+            setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 14));
             setToolTipText(value == null ? null : value.toString());
             return this;
         }

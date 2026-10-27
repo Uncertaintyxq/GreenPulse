@@ -1,0 +1,7 @@
+{
+    // VS Code offers to install these when the folder is opened. The Java pack includes
+    // "Language Support for Java by Red Hat", which the Run and Debug buttons need.
+    "recommendations": [
+        "vscjava.vscode-java-pack"
+    ]
+}

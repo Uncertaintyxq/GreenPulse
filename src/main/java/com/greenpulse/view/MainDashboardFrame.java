@@ -53,8 +53,9 @@ public class MainDashboardFrame extends JFrame {
     private JButton btnCollect, btnRemove;
     private Component removeGap;
 
-    private JLabel lblTotalBins, lblCriticalCount, lblDueCount, lblAvgFill, lblUpdated;
-    private ExitButton exitSign;
+    private JLabel lblTotalBins, lblCriticalCount, lblDueCount, lblAvgFill, lblUpdated, lblNextNote;
+    private JButton btnNextAction;
+    private FillLine fillLine;
     private JPanel toastPanel;
     private JLabel lblToastMessage;
     private Timer toastTimer;
@@ -156,14 +157,17 @@ public class MainDashboardFrame extends JFrame {
     // ------------------------------------------------------------------ sidebar
 
     private JPanel createSidebar() {
-        JPanel rail = new Ui.Sign(new BorderLayout(0, Theme.S5), 10, 14);
-        JPanel railFrame = new JPanel(new BorderLayout());
-        Theme.bg(railFrame, Theme.SIGN);
-        railFrame.setPreferredSize(new Dimension(256, 0));
-        railFrame.add(rail);
+        JPanel sidebar = new JPanel(new BorderLayout(0, Theme.S5));
+        Theme.bg(sidebar, Theme.SIDEBAR);
+        sidebar.setPreferredSize(new Dimension(248, 0));
+        sidebar.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.LINE, 0, 0, 0, 1), new EmptyBorder(Theme.S5, Theme.S4, Theme.S4, Theme.S4)));
 
-        JPanel brand = Ui.column(Ui.label("GreenPulse", Theme.heavy(24), Theme.SIGN_INK));
-        brand.setBorder(new EmptyBorder(Theme.S1, Theme.S3, 0, 0));
+        JPanel brand = Ui.transparent(null);
+        brand.setLayout(new BoxLayout(brand, BoxLayout.X_AXIS));
+        brand.setBorder(new EmptyBorder(0, Theme.S1, Theme.S2, 0));
+        brand.add(new Ui.LogoMark(30));
+        brand.add(Box.createHorizontalStrut(10));
+        brand.add(Ui.label("GreenPulse", Theme.display(18), Theme.INK));
 
         JPanel nav = new JPanel();
         nav.setOpaque(false);
@@ -176,39 +180,45 @@ public class MainDashboardFrame extends JFrame {
         addNav(nav, "PROFILE", "Profile", Glyph.PROFILE, 6);
 
         btnToggleAutoSim = new JButton();
-        btnToggleAutoSim.setFont(Theme.semibold(14));
+        btnToggleAutoSim.setFont(Theme.medium(14));
         btnToggleAutoSim.setHorizontalAlignment(SwingConstants.LEFT);
         btnToggleAutoSim.setIconTextGap(Theme.S3);
         btnToggleAutoSim.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnToggleAutoSim.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnToggleAutoSim.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        btnToggleAutoSim.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         btnToggleAutoSim.setToolTipText("Simulated sensors add a reading for every bin every 5 seconds.");
         btnToggleAutoSim.addActionListener(e -> toggleAutoSimulation());
-        styleAutoSimButton(false);
-        nav.add(Box.createVerticalStrut(Theme.S4));
+        Theme.onThemeChange(btnToggleAutoSim, () -> styleAutoSimButton(TelemetrySimulatorEngine.isRunning()));
+        nav.add(Box.createVerticalStrut(Theme.S5));
         nav.add(btnToggleAutoSim);
 
-        JPanel userFooter = new JPanel(new BorderLayout(Theme.S2, 0));
+        JPanel userFooter = new JPanel(new BorderLayout(Theme.S3, 0));
         userFooter.setOpaque(false);
-        userFooter.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.SIGN_INK2, 1, 0, 0, 0), new EmptyBorder(Theme.S3, Theme.S2, 0, 0)));
+        userFooter.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.LINE, 1, 0, 0, 0), new EmptyBorder(Theme.S4, Theme.S1, 0, 0)));
         JPanel who = Ui.column(
-                Ui.label(currentUser.getFullName(), Theme.bold(15), Theme.SIGN_INK),
-                Ui.label(roleName(currentUser.getRoleType()), Theme.regular(13), Theme.SIGN_INK2));
+                Ui.label(currentUser.getFullName(), Theme.medium(14), Theme.INK),
+                Box.createVerticalStrut(1),
+                Ui.label(roleName(currentUser.getRoleType()), Theme.regular(13), Theme.INK3));
+        JPanel whoRow = Ui.transparent(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.WEST; c.fill = GridBagConstraints.HORIZONTAL; c.weightx = 1;
+        whoRow.add(who, c);
         btnLogout = new JButton(Icons.of(Glyph.LOGOUT, 18));
         btnLogout.setToolTipText("Sign out");
         btnLogout.getAccessibleContext().setAccessibleName("Sign out");
         btnLogout.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnLogout.putClientProperty("JButton.buttonType", "borderless");
-        Theme.onThemeChange(btnLogout, () -> btnLogout.putClientProperty("FlatLaf.style", "foreground: " + Ui.hex(Theme.color(Theme.SIGN_INK))
-                + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SIGN_HOVER)) + "; pressedBackground: " + Ui.hex(Theme.color(Theme.SIGN_DEEP))));
+        Theme.onThemeChange(btnLogout, () -> btnLogout.putClientProperty("FlatLaf.style", "foreground: " + Ui.hex(Theme.color(Theme.INK3))
+                + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SURFACE2)) + "; pressedBackground: " + Ui.hex(Theme.color(Theme.LINE2))));
         btnLogout.addActionListener(e -> performLogout());
-        userFooter.add(who, BorderLayout.CENTER);
+        userFooter.add(new Ui.Avatar(currentUser.getFullName(), 34), BorderLayout.WEST);
+        userFooter.add(whoRow, BorderLayout.CENTER);
         userFooter.add(btnLogout, BorderLayout.EAST);
 
-        rail.add(brand, BorderLayout.NORTH);
-        rail.add(nav, BorderLayout.CENTER);
-        rail.add(userFooter, BorderLayout.SOUTH);
-        return railFrame;
+        sidebar.add(brand, BorderLayout.NORTH);
+        sidebar.add(nav, BorderLayout.CENTER);
+        sidebar.add(userFooter, BorderLayout.SOUTH);
+        return sidebar;
     }
 
     private static String roleName(Role role) {
@@ -229,23 +239,23 @@ public class MainDashboardFrame extends JFrame {
         nav.add(Box.createVerticalStrut(2));
     }
 
-    /** A sidebar link: white legend on the sign; the current page is a white plate with green legend. */
+    /** A sidebar link in quiet ink; the current page sits on a soft green chip (the reserved marking). */
     private static final class NavButton extends JButton {
         private boolean active;
 
         NavButton(String text, Glyph glyph) {
             super(text, Icons.of(glyph, 18));
-            setFont(Theme.semibold(15));
+            setFont(Theme.medium(14));
             setHorizontalAlignment(SwingConstants.LEFT);
             setIconTextGap(Theme.S3);
-            setBorder(new EmptyBorder(10, 12, 10, 12));
+            setBorder(new EmptyBorder(9, 12, 9, 12));
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
             setRolloverEnabled(true);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             setAlignmentX(Component.LEFT_ALIGNMENT);
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
             Theme.onThemeChange(this, this::applyColors);
         }
 
@@ -256,18 +266,19 @@ public class MainDashboardFrame extends JFrame {
             repaint();
         }
 
-        private void applyColors() { setForeground(Theme.color(active ? Theme.SIGN : Theme.SIGN_INK)); }
+        private void applyColors() { setForeground(Theme.color(active ? Theme.ACCENT_TEXT : Theme.INK2)); }
 
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if (active || getModel().isRollover() || isFocusOwner()) {
-                g.setColor(active ? Theme.color(Theme.SIGN_INK) : Theme.color(Theme.SIGN_HOVER));
-                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 8, 8));
+            if (active || getModel().isRollover()) {
+                g.setColor(Theme.color(active ? Theme.ACCENT_SOFT : Theme.SURFACE2));
+                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
             }
-            if (isFocusOwner() && !active) {
-                g.setColor(Theme.color(Theme.SIGN_INK2));
-                g.draw(new RoundRectangle2D.Double(0.5, 0.5, getWidth() - 1, getHeight() - 1, 8, 8));
+            if (isFocusOwner()) {
+                g.setColor(Theme.color(Theme.ACCENT));
+                g.setStroke(new BasicStroke(1.5f));
+                g.draw(new RoundRectangle2D.Double(0.75, 0.75, getWidth() - 1.5, getHeight() - 1.5, 10, 10));
             }
             g.dispose();
             super.paintComponent(g0);
@@ -276,26 +287,26 @@ public class MainDashboardFrame extends JFrame {
 
     private void styleAutoSimButton(boolean running) {
         btnToggleAutoSim.setText(running ? "Stop auto-simulation" : "Start auto-simulation");
-        btnToggleAutoSim.setIcon(Icons.of(running ? Glyph.STOP : Glyph.PLAY, 18));
-        String sign = Ui.hex(Theme.color(Theme.SIGN)), ink = Ui.hex(Theme.color(Theme.SIGN_INK));
+        btnToggleAutoSim.setIcon(Icons.of(running ? Glyph.STOP : Glyph.PLAY, 16));
         btnToggleAutoSim.putClientProperty("FlatLaf.style", running
-                ? "background: " + ink + "; foreground: " + sign + "; borderColor: " + ink + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SIGN_INK2)) + "; margin: 9,12,9,12"
-                : "background: " + sign + "; foreground: " + ink + "; borderColor: " + Ui.hex(Theme.color(Theme.SIGN_INK2))
-                  + "; hoverBackground: " + Ui.hex(Theme.color(Theme.SIGN_HOVER)) + "; hoverBorderColor: " + ink + "; margin: 9,12,9,12");
+                ? "background: " + Ui.hex(Theme.color(Theme.ACCENT_SOFT)) + "; foreground: " + Ui.hex(Theme.color(Theme.ACCENT_TEXT))
+                  + "; borderColor: " + Ui.hex(Theme.color(Theme.ACCENT_TEXT), 0x55) + "; hoverBackground: " + Ui.hex(Theme.color(Theme.ACCENT_SOFT))
+                  + "; hoverBorderColor: " + Ui.hex(Theme.color(Theme.ACCENT_TEXT)) + "; margin: 9,12,9,12"
+                : "foreground: " + Ui.hex(Theme.color(Theme.INK)) + "; margin: 9,12,9,12");
     }
 
     // ------------------------------------------------------------------ monitor page
 
     private JPanel createMonitorPanel() {
         JPanel page = Ui.transparent(new BorderLayout(0, Theme.S5));
-        page.setBorder(new EmptyBorder(Theme.S6, 40, Theme.S6, 40));
+        page.setBorder(new EmptyBorder(Theme.S6, 40, Theme.S6 - Ui.SHADOW, 40));
 
         lblUpdated = Ui.subtitle("Live fill levels for every active bin.");
         JPanel header = Ui.column(Ui.title("Monitor"), Box.createVerticalStrut(Theme.S1), lblUpdated);
 
         JPanel top = Ui.transparent(new BorderLayout(0, Theme.S5));
         top.add(header, BorderLayout.NORTH);
-        top.add(createGantry(), BorderLayout.CENTER);
+        top.add(createFleetSheet(), BorderLayout.CENTER);
         top.add(createToolbar(), BorderLayout.SOUTH);
 
         page.add(top, BorderLayout.NORTH);
@@ -303,97 +314,75 @@ public class MainDashboardFrame extends JFrame {
         return page;
     }
 
-    /** The overhead gantry sign: fleet counts on the left, the next move on the right. */
-    private JComponent createGantry() {
-        JPanel gantry = new Ui.Sign(new BorderLayout(0, 0), 7, 0);
+    /** The fleet sheet: four counts and the next move, over every bin on one fill line. */
+    private JComponent createFleetSheet() {
+        JPanel sheet = new Ui.Plate(new BorderLayout(0, Theme.S4), Theme.S5);
 
-        JPanel counts = Ui.transparent(new GridLayout(1, 4, Theme.S5, 0));
-        counts.setBorder(new EmptyBorder(Theme.S5, 28, Theme.S5, Theme.S5));
-        lblTotalBins = gantryCount(counts, "active bins");
-        lblCriticalCount = gantryCount(counts, "critical");
-        lblDueCount = gantryCount(counts, "due for pickup");
-        lblAvgFill = gantryCount(counts, "average fill");
+        JPanel counts = Ui.transparent(new GridLayout(1, 4, Theme.S6, 0));
+        lblTotalBins = fleetCount(counts, "Active bins");
+        lblCriticalCount = fleetCount(counts, "Critical");
+        lblDueCount = fleetCount(counts, "Due for pickup");
+        lblAvgFill = fleetCount(counts, "Average fill");
 
-        exitSign = new ExitButton();
-        exitSign.addActionListener(e -> switchToTab("DISPATCH"));
-        JPanel exitWrap = Ui.transparent(new BorderLayout());
-        exitWrap.setBorder(BorderFactory.createCompoundBorder(Ui.hairline(Theme.SIGN_INK, 0, 2, 0, 0), new EmptyBorder(Theme.S2, Theme.S2, Theme.S2, Theme.S2)));
-        exitWrap.add(exitSign);
+        btnNextAction = Ui.primary("Loading bins…", Glyph.ARROW_RIGHT);
+        btnNextAction.setFont(Theme.semibold(14));
+        btnNextAction.setHorizontalTextPosition(SwingConstants.LEFT);
+        btnNextAction.setIconTextGap(Theme.S3);
+        btnNextAction.setToolTipText("Open Dispatch");
+        btnNextAction.addActionListener(e -> switchToTab("DISPATCH"));
+        lblNextNote = Ui.label("No bins need collection", Theme.medium(14), Theme.OK_TEXT);
+        lblNextNote.setIconTextGap(Theme.S2);
+        lblNextNote.setVisible(false);
+        JPanel next = Ui.transparent(new GridBagLayout());
+        next.add(btnNextAction);
+        next.add(lblNextNote);
 
-        gantry.add(counts, BorderLayout.CENTER);
-        gantry.add(exitWrap, BorderLayout.EAST);
-        return gantry;
+        JPanel top = Ui.transparent(new BorderLayout(Theme.S5, 0));
+        top.add(counts, BorderLayout.WEST);
+        top.add(next, BorderLayout.EAST);
+
+        fillLine = new FillLine();
+        fillLine.onPick(this::revealBin);
+
+        sheet.add(top, BorderLayout.NORTH);
+        sheet.add(fillLine, BorderLayout.CENTER);
+        return sheet;
     }
 
-    private JLabel gantryCount(JPanel parent, String caption) {
-        JLabel value = Ui.label("—", Theme.heavy(42), Theme.SIGN_INK);
-        JPanel cell = Ui.column(value, Ui.label(caption, Theme.semibold(15), Theme.SIGN_INK2));
-        parent.add(cell);
+    private JLabel fleetCount(JPanel parent, String caption) {
+        JLabel value = Ui.label("—", Theme.display(30), Theme.INK);
+        parent.add(Ui.column(Ui.label(caption, Theme.medium(13), Theme.INK3), Box.createVerticalStrut(2), value));
         return value;
     }
 
-    /** The gantry's exit panel: a yellow NEXT tab and the action, opening Dispatch. */
-    private static final class ExitButton extends JButton {
-        private String tab = "NEXT", line = "Loading bins…";
-        private boolean alert;
+    /** The sheet's next move: a green button when bins need collecting, otherwise one calm line. */
+    private void showNextAction(String action) {
+        btnNextAction.setText(action);
+        btnNextAction.getAccessibleContext().setAccessibleName(action);
+        btnNextAction.setVisible(true);
+        lblNextNote.setVisible(false);
+    }
 
-        ExitButton() {
-            setContentAreaFilled(false);
-            setBorderPainted(false);
-            setFocusPainted(false);
-            setRolloverEnabled(true);
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            setPreferredSize(new Dimension(380, 108));
-            setToolTipText("Open Dispatch");
-        }
+    private void showNextNote(String note, boolean problem) {
+        lblNextNote.setText(note);
+        Theme.fg(lblNextNote, problem ? Theme.CRITICAL_TEXT : Theme.OK_TEXT);
+        lblNextNote.setIcon(Icons.of(problem ? Glyph.WARNING : Glyph.CHECK, 18));
+        lblNextNote.setVisible(true);
+        btnNextAction.setVisible(false);
+    }
 
-        void show(String tab, String line, boolean alert) {
-            this.tab = tab; this.line = line; this.alert = alert;
-            getAccessibleContext().setAccessibleName(line);
-            repaint();
-        }
-
-        @Override protected void paintComponent(Graphics g0) {
-            Graphics2D g = (Graphics2D) g0.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            if (getModel().isRollover() || isFocusOwner()) {
-                g.setColor(Theme.color(Theme.SIGN_HOVER));
-                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 8, 8));
+    /** Selects a bin picked on the fill line, clearing the search and filter first if they hide it. */
+    private void revealBin(String binId) {
+        for (int r = 0; r < tableModel.getRowCount(); r++) {
+            if (!binId.equals(tableModel.getValueAt(r, COL_ID))) continue;
+            if (binTable.convertRowIndexToView(r) < 0) { txtSearch.setText(""); filterControl.select(0); filterTable(); }
+            int view = binTable.convertRowIndexToView(r);
+            if (view >= 0) {
+                binTable.setRowSelectionInterval(view, view);
+                binTable.scrollRectToVisible(binTable.getCellRect(view, 0, true));
+                binTable.requestFocusInWindow();
             }
-            int x = 20;
-            if (tab == null) { // nothing to do: one quiet, centred line and the arrow
-                g.setColor(Theme.color(Theme.SIGN_INK2));
-                g.setFont(Theme.bold(20));
-                FontMetrics fm = g.getFontMetrics();
-                g.drawString(line, x, (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
-                Icons.of(Glyph.ARROW_RIGHT, 26, Theme.SIGN_INK2).paintIcon(this, g, getWidth() - 46, getHeight() / 2 - 13);
-                g.dispose();
-                return;
-            }
-            g.setFont(Theme.bold(13));
-            FontMetrics tabFm = g.getFontMetrics();
-            int tabW = tabFm.stringWidth(tab) + 16, tabH = 22, tabY = getHeight() / 2 - 30;
-            if (alert) {
-                g.setColor(Theme.color(Theme.WARNING));
-                g.fillRoundRect(x, tabY, tabW, tabH, 6, 6);
-                g.setColor(Theme.color(Theme.WARNING_INK));
-            } else {
-                g.setColor(Theme.color(Theme.SIGN_INK));
-                g.setStroke(new BasicStroke(1.5f));
-                g.drawRoundRect(x, tabY, tabW, tabH, 6, 6);
-            }
-            g.drawString(tab, x + 8, tabY + 16);
-            g.setColor(Theme.color(Theme.SIGN_INK));
-            g.setFont(Theme.bold(alert ? 23 : 20));
-            FontMetrics fm = g.getFontMetrics();
-            String text = line;
-            int maxW = getWidth() - x - 56;
-            while (fm.stringWidth(text) > maxW && text.length() > 4) text = text.substring(0, text.length() - 2);
-            if (!text.equals(line)) text = text.trim() + "…";
-            g.drawString(text, x, tabY + tabH + 12 + fm.getAscent());
-            Icons.of(Glyph.ARROW_RIGHT, 26, Theme.SIGN_INK).paintIcon(this, g, getWidth() - 46, getHeight() / 2 - 13);
-            g.dispose();
+            return;
         }
     }
 
@@ -451,7 +440,7 @@ public class MainDashboardFrame extends JFrame {
         tableSorter = new TableRowSorter<>(tableModel);
         binTable.setRowSorter(tableSorter);
         binTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        binTable.setRowHeight(44);
+        binTable.setRowHeight(48);
         binTable.getSelectionModel().addListSelectionListener(e -> updateSelectionActions());
         binTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -489,7 +478,7 @@ public class MainDashboardFrame extends JFrame {
                 head = "No bins registered yet";
                 sub = currentUser.getRoleType().canRegisterBins() ? "Open Register bin to add the first one." : "An administrator or staff member can register bins.";
             } else { head = "No bins match this filter"; sub = "Clear the search or choose All."; }
-            g.setFont(Theme.bold(17));
+            g.setFont(Theme.semibold(16));
             g.setColor(Theme.color(Theme.INK));
             FontMetrics fm = g.getFontMetrics();
             int y = Math.max(90, getVisibleRect().height / 2 - 10);
@@ -513,7 +502,7 @@ public class MainDashboardFrame extends JFrame {
                 Graphics2D g = (Graphics2D) g0.create();
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setColor(UIManager.getColor("ToolTip.background"));
-                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 10, 10));
+                g.fill(new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 12, 12));
                 g.dispose();
             }
         };
@@ -521,7 +510,7 @@ public class MainDashboardFrame extends JFrame {
         innerCard.setBorder(new EmptyBorder(12, 16, 12, 18));
 
         lblToastMessage = new JLabel("Notification ready.");
-        lblToastMessage.setFont(Theme.semibold(14));
+        lblToastMessage.setFont(Theme.medium(14));
         lblToastMessage.setIconTextGap(Theme.S3);
         Theme.onThemeChange(lblToastMessage, () -> lblToastMessage.setForeground(UIManager.getColor("ToolTip.foreground")));
 
@@ -651,58 +640,69 @@ public class MainDashboardFrame extends JFrame {
             protected void done() {
                 if (sequence != loadSequence.get()) return; // a newer refresh is already running; ignore this stale result
                 try {
-                    loadedBins = get();
-                    String selected = selectedBinIdQuietly();
-                    tableModel.setRowCount(0);
-                    int total = loadedBins.size();
-                    int critical = 0, due = 0;
-                    double sumFill = 0.0;
-
-                    for (SmartBin bin : loadedBins) {
-                        int priority = bin.calculatePriority();
-                        double fill = bin.getFillPercentage();
-                        sumFill += fill;
-
-                        String status = CollectionPolicy.isCritical(bin) ? STATUS_CRITICAL
-                                : CollectionPolicy.needsRoute(bin) ? STATUS_DUE : STATUS_NORMAL;
-                        if (STATUS_CRITICAL.equals(status)) critical++;
-                        else if (STATUS_DUE.equals(status)) due++;
-
-                        tableModel.addRow(new Object[]{
-                            bin.getBinID(),
-                            bin.getBinType().getLabel(),
-                            bin.getLocation(),
-                            (int) fill,
-                            priority,
-                            status,
-                            "Dispatch"
-                        });
-                    }
-                    reselect(selected);
-
-                    lblTotalBins.setText(String.valueOf(total));
-                    lblCriticalCount.setText(String.valueOf(critical));
-                    lblDueCount.setText(String.valueOf(due));
-                    lblAvgFill.setText(total == 0 ? "—" : Math.round(sumFill / total) + "%");
-                    lblUpdated.setText("Live fill levels for every active bin · updated " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-                    if (critical > 0) exitSign.show("NEXT", "Dispatch " + critical + " critical bin" + (critical == 1 ? "" : "s"), true);
-                    else if (due > 0) exitSign.show("NEXT", "Route " + due + " bin" + (due == 1 ? "" : "s") + " due for pickup", false);
-                    else exitSign.show(null, "No bins need collection", false);
-
-                    // A driver starts on the dispatch screen before the first load finishes, so hand it the bins now.
-                    if (!initialLoadDone) {
-                        initialLoadDone = true;
-                        if ("DISPATCH".equals(currentCard)) routeMapPanel.refreshBins(loadedBins);
-                    }
+                    applyBins(get());
                 } catch (Exception ex) {
                     initialLoadDone = true;
-                    exitSign.show("NEXT", "Bins could not be loaded", false);
+                    showNextNote("Bins could not be loaded", true);
                     showToast(Glyph.WARNING, "Could not load bins: " + rootMessage(ex));
                 }
                 binTable.repaint();
             }
         };
         worker.execute();
+    }
+
+    /** Fills the table, the fleet counts and the fill line from a fresh list of bins. */
+    void applyBins(List<SmartBin> bins) {
+        loadedBins = bins;
+        String selected = selectedBinIdQuietly();
+        tableModel.setRowCount(0);
+        int total = loadedBins.size();
+        int critical = 0, due = 0;
+        double sumFill = 0.0;
+        List<FillLine.Dot> dots = new ArrayList<>();
+
+        for (SmartBin bin : loadedBins) {
+            int priority = bin.calculatePriority();
+            double fill = bin.getFillPercentage();
+            sumFill += fill;
+
+            String status = CollectionPolicy.isCritical(bin) ? STATUS_CRITICAL
+                    : CollectionPolicy.needsRoute(bin) ? STATUS_DUE : STATUS_NORMAL;
+            if (STATUS_CRITICAL.equals(status)) critical++;
+            else if (STATUS_DUE.equals(status)) due++;
+
+            tableModel.addRow(new Object[]{
+                bin.getBinID(),
+                bin.getBinType().getLabel(),
+                bin.getLocation(),
+                (int) fill,
+                priority,
+                status,
+                "Dispatch"
+            });
+            dots.add(new FillLine.Dot(bin.getBinID(), fill, status));
+        }
+        reselect(selected);
+
+        lblTotalBins.setText(String.valueOf(total));
+        lblCriticalCount.setText(String.valueOf(critical));
+        lblDueCount.setText(String.valueOf(due));
+        Theme.fg(lblCriticalCount, critical > 0 ? Theme.CRITICAL_TEXT : Theme.INK);
+        Theme.fg(lblDueCount, due > 0 ? Theme.WARNING_TEXT : Theme.INK);
+        lblAvgFill.setText(total == 0 ? "—" : Math.round(sumFill / total) + "%");
+        lblUpdated.setText("Live fill levels for every active bin · updated " + LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+        fillLine.setBins(dots);
+        if (critical > 0) showNextAction("Dispatch " + critical + " critical bin" + (critical == 1 ? "" : "s"));
+        else if (due > 0) showNextAction("Route " + due + " bin" + (due == 1 ? "" : "s") + " due for pickup");
+        else showNextNote(total == 0 ? "No bins registered yet" : "No bins need collection", false);
+
+        // A driver starts on the dispatch screen before the first load finishes, so hand it the bins now.
+        if (!initialLoadDone) {
+            initialLoadDone = true;
+            if ("DISPATCH".equals(currentCard)) routeMapPanel.refreshBins(loadedBins);
+        }
+        binTable.repaint();
     }
 
     /** Keeps the user's selected row selected when the simulator refreshes the table every few seconds. */

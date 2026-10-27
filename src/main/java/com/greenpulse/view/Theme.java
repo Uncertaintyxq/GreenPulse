@@ -6,23 +6,26 @@ import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.font.TextAttribute;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.prefs.Preferences;
 
 /**
- * The GreenPulse look: the Overpass typeface, the colour tokens from {@code com/greenpulse/theme/*.properties},
+ * The GreenPulse look: the Geist typeface, the colour tokens from {@code com/greenpulse/theme/*.properties},
  * and light/dark switching. Components remember which token they were painted with, so a theme switch
- * repaints every screen in the new colours instead of leaving light cards on a dark background.
+ * repaints every screen in the new colours instead of leaving white sheets on a dark background.
  */
 public final class Theme {
     private Theme() {}
 
     // Colour tokens (defined in FlatLightLaf.properties and FlatDarkLaf.properties).
-    public static final String GROUND = "GP.ground", SURFACE = "GP.surface", SURFACE2 = "GP.surface2";
-    public static final String LINE = "GP.line", LINE2 = "GP.line2", LATTICE = "GP.lattice";
+    public static final String GROUND = "GP.ground", SURFACE = "GP.surface", SURFACE2 = "GP.surface2", SIDEBAR = "GP.sidebar";
+    public static final String LINE = "GP.line", LINE2 = "GP.line2", ROW_SELECTED = "GP.rowSelected";
+    public static final String SHADOW_NEAR = "GP.shadowNear", SHADOW_FAR = "GP.shadowFar";
     public static final String INK = "GP.ink", INK2 = "GP.ink2", INK3 = "GP.ink3";
-    public static final String SIGN = "GP.sign", SIGN_DEEP = "GP.signDeep", SIGN_HOVER = "GP.signHover";
-    public static final String SIGN_INK = "GP.signInk", SIGN_INK2 = "GP.signInk2", SIGN_LATTICE = "GP.signLattice", SIGN_LATTICE_STRONG = "GP.signLatticeStrong";
+    public static final String ACCENT = "GP.accent", ACCENT_HOVER = "GP.accentHover", ACCENT_PRESSED = "GP.accentPressed";
+    public static final String ACCENT_INK = "GP.accentInk", ACCENT_SOFT = "GP.accentSoft", ACCENT_TEXT = "GP.accentText";
     public static final String CRITICAL = "GP.critical", CRITICAL_INK = "GP.criticalInk", CRITICAL_TEXT = "GP.criticalText", CRITICAL_SOFT = "GP.criticalSoft";
     public static final String WARNING = "GP.warning", WARNING_INK = "GP.warningInk", WARNING_TEXT = "GP.warningText", WARNING_BAR = "GP.warningBar", WARNING_SOFT = "GP.warningSoft";
     public static final String OK = "GP.ok", OK_TEXT = "GP.okText", OK_SOFT = "GP.okSoft";
@@ -35,7 +38,7 @@ public final class Theme {
     private static final Preferences PREFS = Preferences.userNodeForPackage(Theme.class);
     private static boolean dark;
     private static boolean installed;
-    private static Font regular, semibold, bold, heavy, mono, monoBold;
+    private static Font regular, medium, semibold, bold, mono, monoBold;
 
     /** Sets up the look and feel with the theme the user chose last time (light by default). */
     public static void install() {
@@ -71,12 +74,12 @@ public final class Theme {
 
     private static void loadFonts() {
         if (regular != null) return;
-        regular = load("Overpass-Regular.ttf", Font.PLAIN);
-        semibold = load("Overpass-SemiBold.ttf", Font.BOLD);
-        bold = load("Overpass-Bold.ttf", Font.BOLD);
-        heavy = load("Overpass-ExtraBold.ttf", Font.BOLD);
-        mono = load("OverpassMono-Medium.ttf", Font.PLAIN);
-        monoBold = load("OverpassMono-SemiBold.ttf", Font.BOLD);
+        regular = load("Geist-Regular.ttf", Font.PLAIN);
+        medium = load("Geist-Medium.ttf", Font.PLAIN);
+        semibold = load("Geist-SemiBold.ttf", Font.BOLD);
+        bold = load("Geist-Bold.ttf", Font.BOLD);
+        mono = load("GeistMono-Medium.ttf", Font.PLAIN);
+        monoBold = load("GeistMono-SemiBold.ttf", Font.BOLD);
     }
 
     private static Font load(String file, int fallbackStyle) {
@@ -87,16 +90,21 @@ public final class Theme {
             return font;
         } catch (Exception ex) {
             System.err.println("[Theme] Using the system font instead of " + file + ": " + ex.getMessage());
-            return new Font(file.startsWith("OverpassMono") ? Font.MONOSPACED : Font.SANS_SERIF, fallbackStyle, 1);
+            return new Font(file.startsWith("GeistMono") ? Font.MONOSPACED : Font.SANS_SERIF, fallbackStyle, 1);
         }
     }
 
     public static Font regular(float size) { loadFonts(); return regular.deriveFont(size); }
+    public static Font medium(float size) { loadFonts(); return medium.deriveFont(size); }
     public static Font semibold(float size) { loadFonts(); return semibold.deriveFont(size); }
     public static Font bold(float size) { loadFonts(); return bold.deriveFont(size); }
-    public static Font heavy(float size) { loadFonts(); return heavy.deriveFont(size); }
     public static Font mono(float size) { loadFonts(); return mono.deriveFont(size); }
     public static Font monoBold(float size) { loadFonts(); return monoBold.deriveFont(size); }
+
+    /** Page titles and big figures: SemiBold, drawn a touch tighter so large Geist reads as one shape. */
+    public static Font display(float size) {
+        return semibold(size).deriveFont(Map.of(TextAttribute.TRACKING, -0.02f));
+    }
 
     // ------------------------------------------------------------------ token binding
 

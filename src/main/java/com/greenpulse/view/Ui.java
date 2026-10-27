@@ -7,100 +7,67 @@ import javax.swing.border.AbstractBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.awt.geom.Line2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.IntConsumer;
 
 /** Shared building blocks for every GreenPulse screen, so spacing, type and colour stay consistent. */
 final class Ui {
     private Ui() {}
 
-    static final int ARC = 12;
+    static final int ARC = 14;
+    /** Room a sheet keeps below itself for its soft shadow. */
+    static final int SHADOW = 3;
     /** Table client property: model column indexes whose header and figures align right. */
     static final String RIGHT_ALIGNED_COLUMNS = "gp.rightColumns";
 
     // ------------------------------------------------------------------ surfaces
 
-    /** The page ground: a faint lattice like the prisms in reflective sign sheeting. */
+    /** The page ground: one soft, flat tone under the white sheets. */
     static class Ground extends JPanel {
         Ground(LayoutManager layout) { super(layout); setOpaque(true); }
 
-        @Override protected void paintComponent(Graphics g0) {
-            Graphics2D g = (Graphics2D) g0.create();
+        @Override protected void paintComponent(Graphics g) {
             g.setColor(Theme.color(Theme.GROUND));
             g.fillRect(0, 0, getWidth(), getHeight());
-            paintLattice(g, getWidth(), getHeight(), Theme.color(Theme.LATTICE), 26);
-            g.dispose();
         }
     }
 
-    static void paintLattice(Graphics2D g, int w, int h, Color color, int spacing) {
-        g.setColor(color);
-        g.setStroke(new BasicStroke(1f));
-        double rise = Math.tan(Math.toRadians(60)) * 1.0;
-        int span = (int) Math.ceil(h / rise) + w;
-        for (int x = -span; x < w + span; x += spacing) {
-            g.draw(new Line2D.Double(x, 0, x + h / rise, h));
-            g.draw(new Line2D.Double(x, h, x + h / rise, 0));
-        }
-    }
-
-    /** A white working surface with a hairline edge: tables, charts and forms sit on plates. */
+    /**
+     * A white sheet with a hairline edge and a soft shadow: tables, charts and forms sit on sheets.
+     * A padding of 0 or 1 means a table or figure grid fills the sheet; it is then kept clear of the rounded corners.
+     */
     static class Plate extends JPanel {
         Plate(LayoutManager layout, int padding) {
             super(layout);
             setOpaque(false);
-            setBorder(new EmptyBorder(padding, padding, padding, padding));
+            setBorder(padding <= 1 ? new EmptyBorder(8, 1, 8 + SHADOW, 1)
+                    : new EmptyBorder(padding, padding, padding + SHADOW, padding));
         }
 
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            RoundRectangle2D shape = new RoundRectangle2D.Double(0.5, 0.5, getWidth() - 1, getHeight() - 1, ARC, ARC);
-            g.setColor(Theme.color(Theme.SURFACE));
-            g.fill(shape);
-            g.setColor(Theme.color(Theme.LINE));
-            g.draw(shape);
+            paintSheet(g, 0, 0, getWidth(), getHeight() - SHADOW, ARC);
             g.dispose();
         }
     }
 
-    /** A guide-sign panel: sign green, a white inset border and the sheeting lattice. Text on it is white. */
-    static class Sign extends JPanel {
-        private final int inset;
-        private boolean fullBleed;
-        private String latticeKey = Theme.SIGN_LATTICE;
-
-        /** Fills its whole area edge to edge (a window background) with a stronger lattice. */
-        Sign fullBleed(String latticeKey) { this.fullBleed = true; this.latticeKey = latticeKey; return this; }
-
-        Sign(LayoutManager layout, int inset, int padding) {
-            super(layout);
-            this.inset = inset;
-            setOpaque(false);
-            int p = inset + padding;
-            setBorder(new EmptyBorder(p, p, p, p));
-        }
-
-        @Override protected void paintComponent(Graphics g0) {
-            Graphics2D g = (Graphics2D) g0.create();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            Shape outer = fullBleed ? new Rectangle(0, 0, getWidth(), getHeight())
-                    : new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), ARC + 4, ARC + 4);
-            g.setColor(Theme.color(Theme.SIGN));
-            g.fill(outer);
-            Shape clip = g.getClip();
-            g.clip(outer);
-            paintLattice(g, getWidth(), getHeight(), Theme.color(latticeKey), 22);
-            g.setClip(clip);
-            g.setColor(Theme.color(Theme.SIGN_INK));
-            g.setStroke(new BasicStroke(1.5f));
-            g.draw(new RoundRectangle2D.Double(inset + 0.75, inset + 0.75, getWidth() - 2 * inset - 1.5,
-                    getHeight() - 2 * inset - 1.5, ARC - 2, ARC - 2));
-            g.dispose();
-        }
+    /** Two soft shadow steps, the white surface, then a hairline: the one way a sheet is drawn. */
+    static void paintSheet(Graphics2D g, double x, double y, double w, double h, int arc) {
+        g.setColor(Theme.color(Theme.SHADOW_FAR));
+        g.fill(new RoundRectangle2D.Double(x - 0.5, y + 2, w + 1, h + 1, arc + 2, arc + 2));
+        g.setColor(Theme.color(Theme.SHADOW_NEAR));
+        g.fill(new RoundRectangle2D.Double(x, y + 1, w, h, arc, arc));
+        RoundRectangle2D sheet = new RoundRectangle2D.Double(x + 0.5, y + 0.5, w - 1, h - 1, arc, arc);
+        g.setColor(Theme.color(Theme.SURFACE));
+        g.fill(sheet);
+        g.setColor(Theme.color(Theme.LINE));
+        g.draw(sheet);
     }
 
     /** A border that draws hairlines on the chosen sides in a colour token, read at paint time. */
@@ -130,17 +97,20 @@ final class Ui {
         return l;
     }
 
-    static JLabel title(String text) { return label(text, Theme.heavy(28), Theme.INK); }
-    static JLabel subtitle(String text) { return label(text, Theme.regular(15), Theme.INK2); }
-    static JLabel sectionTitle(String text) { return label(text, Theme.bold(17), Theme.INK); }
+    static JLabel title(String text) { return label(text, Theme.display(26), Theme.INK); }
+    static JLabel subtitle(String text) { return label(text, Theme.regular(14), Theme.INK2); }
+    static JLabel sectionTitle(String text) { return label(text, Theme.semibold(16), Theme.INK); }
     static JLabel body(String text) { return label(text, Theme.regular(14), Theme.INK2); }
     static JLabel caption(String text) { return label(text, Theme.regular(13), Theme.INK3); }
-    static JLabel fieldLabel(String text) { return label(text, Theme.semibold(13), Theme.INK2); }
+    static JLabel fieldLabel(String text) { return label(text, Theme.medium(13), Theme.INK2); }
 
-    /** Text that wraps to the given width; it follows the label's own colour, so it survives theme switches. */
+    /**
+     * Text that wraps to the given width in screen pixels; it follows the label's own colour, so it survives theme
+     * switches. Swing's HTML renderer counts a CSS px as 1.3 screen pixels and a pt as exactly one, hence pt.
+     */
     static String wrap(String text, int widthPx) {
         String safe = text == null ? "" : text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
-        return "<html><div style='width:" + widthPx + "px'>" + safe + "</div></html>";
+        return "<html><div style='width:" + widthPx + "pt'>" + safe + "</div></html>";
     }
 
     /** Page title and one-line purpose, with optional controls on the right. */
@@ -162,59 +132,153 @@ final class Ui {
         return header;
     }
 
-    /** A plate heading: title, optional explanation underneath. */
+    /** A sheet heading: title, optional explanation underneath. */
     static JPanel plateHeader(String title, String subtitle) {
         JPanel words = new JPanel();
         words.setOpaque(false);
         words.setLayout(new BoxLayout(words, BoxLayout.Y_AXIS));
         words.add(sectionTitle(title));
-        if (subtitle != null) { words.add(Box.createVerticalStrut(2)); words.add(caption(subtitle)); }
+        if (subtitle != null) { words.add(Box.createVerticalStrut(3)); words.add(caption(subtitle)); }
         return words;
     }
 
     /** A bin ID on its quiet chip, the same code style the tables use. */
     static JComponent codeChip(String code) {
         return new JComponent() {
-            { setPreferredSize(new Dimension(textWidth() + 16, 26)); setToolTipText(code); }
+            { setPreferredSize(new Dimension(textWidth() + 18, 26)); setToolTipText(code); }
             private int textWidth() { return getFontMetrics(Theme.monoBold(13)).stringWidth(code); }
             @Override public Dimension getMaximumSize() { return getPreferredSize(); }
             @Override protected void paintComponent(Graphics g0) {
                 Graphics2D g = (Graphics2D) g0.create();
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                int w = textWidth() + 14, h = 24, y = (getHeight() - h) / 2;
-                g.setColor(Theme.color(Theme.SURFACE2));
-                g.fill(new RoundRectangle2D.Double(0, y, w, h, 6, 6));
-                g.setColor(Theme.color(Theme.LINE));
-                g.draw(new RoundRectangle2D.Double(0.5, y + 0.5, w - 1, h - 1, 6, 6));
-                g.setFont(Theme.monoBold(13));
-                FontMetrics fm = g.getFontMetrics();
-                g.setColor(Theme.color(Theme.INK));
-                g.drawString(code, 7, y + (h + fm.getAscent() - fm.getDescent()) / 2);
+                paintCodeChip(g, code, 0, getHeight() / 2, false);
                 g.dispose();
             }
         };
     }
 
-    /** A small rounded status plate in a sign-class colour, like the table status badges. */
-    static JComponent badge(String text, String fillKey, String inkKey) {
+    /** Draws a bin code chip with its left edge at x, centred on centerY; returns its width. */
+    static int paintCodeChip(Graphics2D g, String code, int x, int centerY, boolean onSelection) {
+        g.setFont(Theme.monoBold(13));
+        FontMetrics fm = g.getFontMetrics();
+        int w = fm.stringWidth(code) + 16, h = 24, y = centerY - h / 2;
+        g.setColor(Theme.color(onSelection ? Theme.SURFACE : Theme.SURFACE2));
+        g.fill(new RoundRectangle2D.Double(x, y, w, h, 7, 7));
+        g.setColor(Theme.color(Theme.LINE));
+        g.draw(new RoundRectangle2D.Double(x + 0.5, y + 0.5, w - 1, h - 1, 7, 7));
+        g.setColor(Theme.color(Theme.INK));
+        g.drawString(code, x + 8, y + (h + fm.getAscent() - fm.getDescent()) / 2);
+        return w;
+    }
+
+    /** How urgently a bin needs someone; picks a status pill's colours. */
+    enum Tone { CRITICAL, DUE, NORMAL }
+
+    /** A status pill led by a state dot. */
+    static JComponent pill(String text, Tone tone) {
         return new JComponent() {
-            { setPreferredSize(new Dimension(getFontMetrics(Theme.bold(13)).stringWidth(text) + 22, 26)); setToolTipText(text); }
+            { setPreferredSize(new Dimension(pillWidth(getFontMetrics(Theme.medium(13)), text), 26)); setToolTipText(text); }
             @Override public Dimension getMaximumSize() { return getPreferredSize(); }
             @Override protected void paintComponent(Graphics g0) {
                 Graphics2D g = (Graphics2D) g0.create();
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                g.setFont(Theme.bold(13));
-                FontMetrics fm = g.getFontMetrics();
-                int w = fm.stringWidth(text) + 20, h = 24, x = getWidth() - w, y = (getHeight() - h) / 2;
-                g.setColor(Theme.color(fillKey));
-                g.fill(new RoundRectangle2D.Double(x, y, w, h, 6, 6));
-                g.setColor(Theme.color(inkKey));
-                g.drawString(text, x + 10, y + (h + fm.getAscent() - fm.getDescent()) / 2);
+                g.setFont(Theme.medium(13));
+                paintPill(g, text, tone, getWidth() - pillWidth(g.getFontMetrics(), text), getHeight() / 2);
                 g.dispose();
             }
         };
+    }
+
+    static int pillWidth(FontMetrics fm, String text) { return fm.stringWidth(text) + 31; }
+
+    /** Draws a status pill with its left edge at x, centred on centerY, in the current font. */
+    static void paintPill(Graphics2D g, String text, Tone tone, int x, int centerY) {
+        String soft, ink, dot;
+        switch (tone) {
+            case CRITICAL -> { soft = Theme.CRITICAL_SOFT; ink = Theme.CRITICAL_TEXT; dot = Theme.CRITICAL; }
+            case DUE -> { soft = Theme.WARNING_SOFT; ink = Theme.WARNING_TEXT; dot = Theme.WARNING_BAR; }
+            default -> { soft = Theme.SURFACE2; ink = Theme.INK2; dot = Theme.OK; }
+        }
+        FontMetrics fm = g.getFontMetrics();
+        int w = pillWidth(fm, text), h = 24, y = centerY - h / 2;
+        RoundRectangle2D shape = new RoundRectangle2D.Double(x, y, w, h, h, h);
+        g.setColor(Theme.color(soft));
+        g.fill(shape);
+        if (tone == Tone.NORMAL) { // a neutral pill needs an edge to read on a white sheet
+            g.setColor(Theme.color(Theme.LINE));
+            g.draw(new RoundRectangle2D.Double(x + 0.5, y + 0.5, w - 1, h - 1, h - 1, h - 1));
+        }
+        g.setColor(Theme.color(dot));
+        g.fill(new Ellipse2D.Double(x + 10, centerY - 3, 6, 6));
+        g.setColor(Theme.color(ink));
+        g.drawString(text, x + 22, y + (h + fm.getAscent() - fm.getDescent()) / 2);
+    }
+
+    /** A round avatar with the person's initials. */
+    static final class Avatar extends JComponent {
+        private final String initials;
+        private final int size;
+
+        Avatar(String fullName, int size) {
+            this.initials = initials(fullName);
+            this.size = size;
+            setPreferredSize(new Dimension(size, size));
+            setMinimumSize(getPreferredSize());
+            setMaximumSize(getPreferredSize());
+        }
+
+        @Override protected void paintComponent(Graphics g0) {
+            Graphics2D g = (Graphics2D) g0.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            int x = (getWidth() - size) / 2, y = (getHeight() - size) / 2;
+            g.setColor(Theme.color(Theme.ACCENT_SOFT));
+            g.fill(new Ellipse2D.Double(x, y, size, size));
+            g.setFont(Theme.semibold(size * 0.38f));
+            FontMetrics fm = g.getFontMetrics();
+            g.setColor(Theme.color(Theme.ACCENT_TEXT));
+            g.drawString(initials, x + (size - fm.stringWidth(initials)) / 2f, y + (size + fm.getAscent() - fm.getDescent()) / 2f);
+            g.dispose();
+        }
+
+        static String initials(String name) {
+            if (name == null || name.isBlank()) return "?";
+            String[] parts = name.trim().split("\\s+");
+            String first = parts[0].substring(0, 1), last = parts.length > 1 ? parts[parts.length - 1].substring(0, 1) : "";
+            return (first + last).toUpperCase(Locale.ROOT);
+        }
+    }
+
+    /** The GreenPulse mark: a rounded green tile with a white pulse line. */
+    static final class LogoMark extends JComponent {
+        private final int size;
+
+        LogoMark(int size) {
+            this.size = size;
+            setPreferredSize(new Dimension(size, size));
+            setMinimumSize(getPreferredSize());
+            setMaximumSize(getPreferredSize());
+        }
+
+        @Override protected void paintComponent(Graphics g0) {
+            Graphics2D g = (Graphics2D) g0.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+            g.translate((getWidth() - size) / 2.0, (getHeight() - size) / 2.0);
+            g.setColor(Theme.color(Theme.ACCENT));
+            g.fill(new RoundRectangle2D.Double(0, 0, size, size, size * 0.34, size * 0.34));
+            double s = size / 24.0;
+            g.scale(s, s);
+            Path2D pulse = new Path2D.Double();
+            pulse.moveTo(4.5, 12.5); pulse.lineTo(8.5, 12.5); pulse.lineTo(10.5, 7.5);
+            pulse.lineTo(13.5, 17); pulse.lineTo(15.5, 12.5); pulse.lineTo(19.5, 12.5);
+            g.setColor(Theme.color(Theme.ACCENT_INK));
+            g.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g.draw(pulse);
+            g.dispose();
+        }
     }
 
     // ------------------------------------------------------------------ controls
@@ -224,7 +288,7 @@ final class Ui {
     static JButton button(String text, Glyph glyph, Kind kind) {
         JButton b = new JButton(text);
         if (glyph != null) { b.setIcon(Icons.of(glyph, 16)); b.setIconTextGap(Theme.S2); }
-        b.setFont(Theme.semibold(14));
+        b.setFont(Theme.medium(14));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         Theme.onThemeChange(b, () -> styleButton(b, kind));
         return b;
@@ -235,26 +299,30 @@ final class Ui {
     static JButton danger(String text, Glyph glyph) { return button(text, glyph, Kind.DANGER); }
     static JButton quiet(String text, Glyph glyph) { return button(text, glyph, Kind.QUIET); }
 
-    private static void styleButton(JButton b, Kind kind) {
+    static void styleButton(JButton b, Kind kind) {
         switch (kind) {
-            case PRIMARY -> b.putClientProperty("FlatLaf.style", "background: " + hex(Theme.color(Theme.isDark() ? Theme.SIGN_HOVER : Theme.SIGN))
-                    + "; foreground: #FFFFFF; borderColor: " + hex(Theme.color(Theme.SIGN))
-                    + "; hoverBackground: " + hex(Theme.color(Theme.isDark() ? Theme.SIGN : Theme.SIGN_HOVER))
-                    + "; hoverBorderColor: " + hex(Theme.color(Theme.SIGN_HOVER))
-                    + "; pressedBackground: " + hex(Theme.color(Theme.SIGN_DEEP)));
+            case PRIMARY -> b.putClientProperty("FlatLaf.style", "background: " + hex(Theme.color(Theme.ACCENT))
+                    + "; foreground: " + hex(Theme.color(Theme.ACCENT_INK))
+                    + "; borderColor: " + hex(Theme.color(Theme.ACCENT))
+                    + "; hoverBackground: " + hex(Theme.color(Theme.ACCENT_HOVER))
+                    + "; hoverBorderColor: " + hex(Theme.color(Theme.ACCENT_HOVER))
+                    + "; pressedBackground: " + hex(Theme.color(Theme.ACCENT_PRESSED))
+                    + "; focusedBorderColor: " + hex(Theme.color(Theme.ACCENT)));
             case SECONDARY -> b.putClientProperty("FlatLaf.style", "foreground: " + hex(Theme.color(Theme.INK)));
             case DANGER -> b.putClientProperty("FlatLaf.style", "foreground: " + hex(Theme.color(Theme.CRITICAL_TEXT))
-                    + "; borderColor: " + hex(Theme.color(Theme.CRITICAL_TEXT))
-                    + "; hoverBorderColor: " + hex(Theme.color(Theme.CRITICAL))
-                    + "; hoverBackground: " + hex(Theme.color(Theme.CRITICAL_SOFT)));
+                    + "; borderColor: " + hex(Theme.color(Theme.CRITICAL_TEXT), 0x66)
+                    + "; hoverBorderColor: " + hex(Theme.color(Theme.CRITICAL_TEXT))
+                    + "; hoverBackground: " + hex(Theme.color(Theme.CRITICAL_SOFT))
+                    + "; pressedBackground: " + hex(Theme.color(Theme.CRITICAL_SOFT)));
             case QUIET -> {
                 b.putClientProperty("JButton.buttonType", "borderless");
-                b.putClientProperty("FlatLaf.style", "foreground: " + hex(Theme.color(Theme.OK_TEXT)));
+                b.putClientProperty("FlatLaf.style", "foreground: " + hex(Theme.color(Theme.ACCENT_TEXT)));
             }
         }
     }
 
     static String hex(Color c) { return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue()); }
+    static String hex(Color c, int alpha) { return String.format("#%02x%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue(), alpha); }
 
     /** Consistent text-field size and type; the placeholder replaces a separate hint line where it fits. */
     static <T extends JComponent> T field(T field, String placeholder) {
@@ -313,20 +381,20 @@ final class Ui {
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            RoundRectangle2D shape = new RoundRectangle2D.Double(0.5, 0.5, getWidth() - 1, getHeight() - 1, 10, 10);
+            RoundRectangle2D shape = new RoundRectangle2D.Double(0.5, 0.5, getWidth() - 1, getHeight() - 1, 12, 12);
             g.setColor(Theme.color(Theme.SURFACE));
             g.fill(shape);
-            g.setColor(UIManager.getColor("Component.borderColor"));
+            g.setColor(UIManager.getColor("Button.borderColor"));
             g.draw(shape);
             g.dispose();
         }
     }
 
-    /** One option in a {@link Segmented}: the chosen one is a solid sign-green plate with white text. */
+    /** One option in a {@link Segmented}: the chosen one sits on a soft green chip, like the current page. */
     private static final class SegmentButton extends JToggleButton {
         SegmentButton(String text) {
             super(text);
-            setFont(Theme.semibold(13));
+            setFont(Theme.medium(13));
             setFocusPainted(false);
             setContentAreaFilled(false);
             setBorderPainted(false);
@@ -338,21 +406,21 @@ final class Ui {
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            RoundRectangle2D shape = new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 7, 7);
+            RoundRectangle2D shape = new RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 9, 9);
             if (isSelected()) {
-                g.setColor(Theme.color(Theme.isDark() ? Theme.SIGN_HOVER : Theme.SIGN));
+                g.setColor(Theme.color(Theme.ACCENT_SOFT));
                 g.fill(shape);
             } else if (getModel().isRollover()) {
                 g.setColor(Theme.color(Theme.SURFACE2));
                 g.fill(shape);
             }
             if (isFocusOwner()) {
-                g.setColor(Theme.color(Theme.OK));
+                g.setColor(Theme.color(Theme.ACCENT));
                 g.setStroke(new BasicStroke(2f));
-                g.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, 7, 7));
+                g.draw(new RoundRectangle2D.Double(1, 1, getWidth() - 2, getHeight() - 2, 9, 9));
             }
             g.dispose();
-            setForeground(Theme.color(isSelected() ? Theme.SIGN_INK : Theme.INK2));
+            setForeground(Theme.color(isSelected() ? Theme.ACCENT_TEXT : Theme.INK2));
             super.paintComponent(g0);
         }
     }
@@ -382,13 +450,13 @@ final class Ui {
         return scroll;
     }
 
-    /** A table sitting directly on a plate: no outer border, header and body in the plate's colours. */
+    /** A table sitting directly on a sheet: no outer border, header and body in the sheet's colours. */
     static JScrollPane tableScroll(JTable table) {
         table.setFont(Theme.regular(14));
         table.setFillsViewportHeight(true);
         table.setShowVerticalLines(false);
         JTableHeader header = table.getTableHeader();
-        header.setFont(Theme.semibold(13));
+        header.setFont(Theme.medium(13));
         header.setReorderingAllowed(false);
         javax.swing.table.TableCellRenderer base = header.getDefaultRenderer();
         header.setDefaultRenderer((t, value, selected, focused, row, column) -> {
@@ -400,7 +468,7 @@ final class Ui {
                     for (int c : cols) right |= c == model;
                 }
                 l.setHorizontalAlignment(right ? SwingConstants.RIGHT : SwingConstants.LEFT);
-                l.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, right ? 24 : 12));
+                l.setBorder(BorderFactory.createEmptyBorder(0, 14, 0, right ? 24 : 14));
             }
             return comp;
         });

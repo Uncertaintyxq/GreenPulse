@@ -55,7 +55,7 @@ public class SimulatePanel extends JPanel {
         JPanel secondaryGroup = Ui.column(sliderHead(lblSecondary, lblSecondaryValue), Box.createVerticalStrut(Theme.S2), secondarySlider,
                 Box.createVerticalStrut(Theme.S1), lblSensorHint);
 
-        JLabel note = Ui.label(Ui.wrap("Simulation writes a new reading to the database. Use it for testing, not as a real sensor measurement.", 520),
+        JLabel note = Ui.label(Ui.wrap("Simulation writes a new reading to the database. Use it for testing, not as a real sensor measurement.", 676),
                 Theme.regular(14), Theme.INK2);
         note.setIcon(Icons.of(Glyph.INFO, 18, Theme.OK_TEXT));
         note.setIconTextGap(Theme.S3);

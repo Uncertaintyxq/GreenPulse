@@ -9,6 +9,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -70,10 +71,31 @@ final class AnalyticsCharts {
             repaint();
         }
 
+        private static double lastValue(double[] values) {
+            for (int i = values.length - 1; i >= 0; i--) if (!Double.isNaN(values[i])) return values[i];
+            return Double.NaN;
+        }
+
         @Override protected void paintComponent(Graphics g0) {
             Graphics2D g = (Graphics2D) g0.create();
             prepare(g);
-            Rectangle plot = new Rectangle(44, 36, getWidth() - 44 - 16, getHeight() - 36 - 30);
+            // Lay the legend out first: it wraps when the chart is too narrow, and the plot starts below it.
+            g.setFont(legend());
+            FontMetrics lfm = g.getFontMetrics();
+            List<String> legendText = new ArrayList<>();
+            List<Point> legendAt = new ArrayList<>();
+            int lx = 44, ly = 15;
+            for (Series s : series) {
+                double last = lastValue(s.values());
+                String text = s.name() + (Double.isNaN(last) ? "" : String.format(Locale.US, "  now %.0f%%", last));
+                int w = 20 + lfm.stringWidth(text);
+                if (lx > 44 && lx + w > getWidth() - 16) { lx = 44; ly += 20; }
+                legendText.add(text);
+                legendAt.add(new Point(lx, ly));
+                lx += w + 24;
+            }
+            int top = ly + 21;
+            Rectangle plot = new Rectangle(44, top, getWidth() - 44 - 16, getHeight() - top - 30);
             if (plot.width < 20 || plot.height < 20) { g.dispose(); return; }
 
             g.setFont(small());
@@ -94,8 +116,8 @@ final class AnalyticsCharts {
             drawXAxis(g, plot, start, end);
 
             boolean any = false;
-            int legendX = plot.x;
-            for (Series s : series) {
+            for (int si = 0; si < series.size(); si++) {
+                Series s = series.get(si);
                 Color color = Theme.color(s.colorKey());
                 double[] v = s.values();
                 Path2D.Double path = new Path2D.Double();
@@ -119,13 +141,12 @@ final class AnalyticsCharts {
                     g.setColor(color);
                     g.fillOval(lastX - 4, lastY - 4, 8, 8);
                 }
+                Point at = legendAt.get(si);
                 g.setColor(color);
-                g.fillRoundRect(legendX, 8, 14, 4, 2, 2);
+                g.fillRoundRect(at.x, at.y - 7, 14, 4, 2, 2);
                 g.setFont(legend());
                 g.setColor(Theme.color(Theme.INK2));
-                String text = s.name() + (Double.isNaN(lastValue) ? "" : String.format(Locale.US, "  now %.0f%%", lastValue));
-                g.drawString(text, legendX + 20, 15);
-                legendX += 20 + g.getFontMetrics().stringWidth(text) + 24;
+                g.drawString(legendText.get(si), at.x + 20, at.y);
             }
             g.setFont(Theme.semibold(12));
             g.setColor(Theme.color(Theme.CRITICAL_TEXT));

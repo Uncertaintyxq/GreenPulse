@@ -71,7 +71,8 @@ public class RouteMapPanel extends JPanel {
         WrappingLabel(String text) { setText(text); }
 
         @Override public void setText(String text) {
-            super.setText(text == null ? null : "<html><div style='width:" + WRAP_WIDTH_PX + "px'>"
+            // pt, not px: Swing's HTML renderer counts a CSS px as 1.3 screen pixels, which pushed lines past the panel.
+            super.setText(text == null ? null : "<html><div style='width:" + WRAP_WIDTH_PX + "pt'>"
                     + text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;") + "</div></html>");
         }
     }
@@ -246,9 +247,8 @@ public class RouteMapPanel extends JPanel {
         dispatchProgressBar.setToolTipText("Progress of the truck along the route");
         dispatchProgressBar.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        Theme.onThemeChange(btnDispatch, () -> btnDispatch.putClientProperty("FlatLaf.style", "background: " + Ui.hex(Theme.color(Theme.isDark() ? Theme.SIGN_HOVER : Theme.SIGN))
-                + "; foreground: #FFFFFF; borderColor: " + Ui.hex(Theme.color(Theme.SIGN)) + "; hoverBackground: " + Ui.hex(Theme.color(Theme.isDark() ? Theme.SIGN : Theme.SIGN_HOVER))));
-        btnDispatch.setFont(Theme.bold(15));
+        Theme.onThemeChange(btnDispatch, () -> Ui.styleButton(btnDispatch, Ui.Kind.PRIMARY));
+        btnDispatch.setFont(Theme.semibold(15));
         btnDispatch.setIcon(Icons.of(Icons.Glyph.DISPATCH, 18));
         btnDispatch.setIconTextGap(Theme.S2);
         btnDispatch.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -344,7 +344,7 @@ public class RouteMapPanel extends JPanel {
         controlsPlate.setPreferredSize(new Dimension(390, 480));
         controlsPlate.setMinimumSize(new Dimension(320, 180));
 
-        mapCanvas.setBorder(BorderFactory.createLineBorder(Theme.color(Theme.SIGN), 2));
+        mapCanvas.setBorder(Ui.hairline(Theme.LINE, 1, 1, 1, 1));
 
         // A draggable split pane gives the controls enough room for labels and buttons
         // without permanently squeezing the map. The controls remain independently scrollable.

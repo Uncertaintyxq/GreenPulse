@@ -11,22 +11,20 @@ Scope: the desktop console shell and its screens (Login, Monitor, Analytics, Sen
 
 Audience and job: dispatchers, staff and drivers at a waste office desk, and panelists watching it on a projector. Find critical bins, dispatch a road route, and record the stops.
 
-Constraints: Swing + FlatLaf only; WCAG AA contrast; working light and dark themes; no new claims or data.
+Constraints: Swing + FlatLaf only; WCAG AA contrast; white is the default theme and the dark switch stays (owner, 2026-10-27); no new claims or data.
 
 ## Direction contract
 
-THESIS: The console reads like the road the collection trucks drive: guide-sign panels give the dispatcher the next move. It refuses the category default of a slate sidebar, an emerald accent and four KPI cards with coloured left borders.
+THESIS: A calm white workbench: every screen is a clean white sheet, and colour appears only where a bin needs someone. It replaces the green guide-sign rail and refuses the category default of a slate sidebar, an emerald accent and four striped KPI cards.
 
-OWN-WORLD: Sign green #0B5137 rail drawn as a guide sign, with an inset 1.5px white border, 10px corners and white legends. A #F3F5F1 ground carrying a faint retroreflective prism lattice. White plates with 1px hairlines. State colours follow sign classes: regulatory red #B42318 for critical, advisory yellow #F2B705 with black ink for filling, guide green for normal. Data series use service blue #1F4E8C for recycling and tourist brown #7A4E24 for compost. Overpass for everything, Overpass Mono for bin codes and figures. Authored stroke icons, no emoji. Dark theme is the night sign.
+OWN-WORLD: White sheets (#FFFFFF) on a barely green-grey ground (#F5F7F6), 1px #E2E7E4 hairlines and a soft two-step shadow under each sheet; 14px sheet corners, 10px controls, pill status chips led by a state dot. One forest-green accent (#0E6E46) for the primary action, the current page and selection. States: red critical, amber due, green normal. Geist for every word, Geist Mono for bin codes and compared figures. Authored 1.75-stroke icons. The night theme is the same sheets in graphite.
 
-STORY: The dispatcher reads fleet state off the gantry, sees what is critical, takes the exit to Dispatch and works the stops. Analytics answers whether collection is keeping up.
+STORY: The dispatcher reads the fill line, sees which bins crossed the due and critical marks, presses the one green Dispatch button, and works the stops.
 
-FIRST VIEWPORT: Monitor. A 256px sign rail on the left holds the brand, six nav items, the auto-simulation control and the user footer. Main column: the title with its last-updated time, then an overhead gantry sign at full width, with active, critical, normal and average-fill counts in 44px white on the left and, on the right, an exit panel with a yellow NEXT tab reading "Dispatch N critical bins →" (the primary action). Below it a toolbar (search, segmented filter, Mark collected, and Remove bin isolated in red outline), then the bin table plate.
+FIRST VIEWPORT: Monitor. A 248px white sidebar with a hairline edge: logo mark and wordmark, six nav rows, the auto-simulation toggle, an avatar footer. Main column: "Monitor" at 26px SemiBold with the updated time, then the fleet sheet: four counts in one row (critical in red when above zero) over the fill line, every bin a dot on a 0–100% track with Due 60% and Critical 85% marks, and the primary "Dispatch N critical bins" button at the sheet's right. Then the toolbar (search, pill filter, Mark collected, Remove bin isolated) and the bin table sheet.
 
-FORM: Road Guide Sign, position 3 of 7 on the ordered list (RA 9003 segregation code, NAMRIA topo sheet, DPWH guide signs, PAGASA bulletins, DENR-EMB forms, truck livery, field-guide plates). seed:e6a50bba138dff49
+FORM: User-pinned world ("clean aesthetic, smooth white with fonts"; font chosen by the owner: Geist + Geist Mono). No concept roll, because the owner pinned the world. seed: none (user-pinned). Kept from the previous contract: one reserved marking for the current page and the next action, destructive actions isolated and outlined, one bin-code style, and mono figures.
 
-Raises kept from declined challengers: colour only inside bounded plates (lexicon); one reserved marking for the active page and next action (orienteering); flat sign colour (zoo); destructive actions isolated and outlined (console); one bin-code style everywhere (doujin); one fixed tonal ramp for neutrals (exposure).
-
-Signature interaction: the gantry's exit panel updates live with the critical count and opens Dispatch. When no bin is critical or due it drops the tab and reads "No bins need collection" in quiet green (a bin can be critical below 85% through its priority score, so the 85% wording would be untrue). Motion: state changes only, 150–200 ms.
+Signature interaction: the fill line. Hovering a dot names the bin and its fill; clicking it selects that row in the table. It updates live while auto-simulation runs.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

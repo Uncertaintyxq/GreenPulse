@@ -1,0 +1,16 @@
+{
+    // Run > Start Debugging (F5) or Run Without Debugging (Ctrl+F5 / Cmd+F5) starts GreenPulse.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "GreenPulse",
+            "request": "launch",
+            "mainClass": "com.greenpulse.App",
+            "projectName": "GreenPulse",
+            "cwd": "${workspaceFolder}",
+            "vmArgs": "--enable-native-access=ALL-UNNAMED -Dapple.awt.application.name=GreenPulse",
+            "console": "internalConsole"
+        }
+    ]
+}

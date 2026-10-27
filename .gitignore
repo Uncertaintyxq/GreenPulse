@@ -1,6 +1,14 @@
 target/
 .DS_Store
 .idea/
-.vscode/
+# VS Code: share the run setup, keep personal files out.
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
 nbproject/private/
+nb-configuration.xml
 *.iml
+# Local database settings (copy greenpulse.example.properties to create it).
+greenpulse.properties

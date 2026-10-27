@@ -3,10 +3,9 @@ package com.greenpulse.view;
 import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 
 /**
- * Status as a sign plate: regulatory red for critical, advisory yellow for due, a quiet green plate for normal.
+ * Status as a pill led by a state dot: red for critical, amber for due, a quiet neutral pill for normal.
  * The table keeps the raw values (CRITICAL, DUE, NORMAL) so filters can match them.
  */
 public class StatusBadgeRenderer extends JComponent implements TableCellRenderer {
@@ -35,20 +34,12 @@ public class StatusBadgeRenderer extends JComponent implements TableCellRenderer
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setColor(Renderers.cellBackground(table, selected));
         g.fillRect(0, 0, getWidth(), getHeight());
-
-        String text, fill, ink;
+        g.setFont(Theme.medium(13));
         switch (status) {
-            case "CRITICAL" -> { text = "Critical"; fill = Theme.CRITICAL; ink = Theme.CRITICAL_INK; }
-            case "DUE" -> { text = "Due"; fill = Theme.WARNING; ink = Theme.WARNING_INK; }
-            default -> { text = "Normal"; fill = Theme.OK_SOFT; ink = Theme.OK_TEXT; }
+            case "CRITICAL" -> Ui.paintPill(g, "Critical", Ui.Tone.CRITICAL, 14, getHeight() / 2);
+            case "DUE" -> Ui.paintPill(g, "Due", Ui.Tone.DUE, 14, getHeight() / 2);
+            default -> Ui.paintPill(g, "Normal", Ui.Tone.NORMAL, 14, getHeight() / 2);
         }
-        g.setFont(Theme.bold(13));
-        FontMetrics fm = g.getFontMetrics();
-        int w = fm.stringWidth(text) + 20, h = 24, x = 12, y = (getHeight() - h) / 2;
-        g.setColor(Theme.color(fill));
-        g.fill(new RoundRectangle2D.Double(x, y, w, h, 6, 6));
-        g.setColor(Theme.color(ink));
-        g.drawString(text, x + 10, y + (h + fm.getAscent() - fm.getDescent()) / 2);
         g.dispose();
     }
 }

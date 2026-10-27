@@ -10,10 +10,26 @@ GreenPulse is a Java 17+ desktop application built with Swing and FlatLaf. It pr
 
 ## Setup
 
-1. Start MySQL Server.
-2. Configure your MySQL credentials. GreenPulse reads `GREENPULSE_MYSQL_USER` and `GREENPULSE_MYSQL_PASSWORD`; the defaults are `root` and an empty password for a local classroom setup. You can also override the JDBC URLs with `GREENPULSE_MYSQL_BASE_URL` and `GREENPULSE_MYSQL_URL`. For anything beyond a classroom demo, use a restricted database account.
-3. From this directory, run `mvn clean compile`, then `mvn exec:java` to launch.
+1. Start MySQL Server (XAMPP, MySQL Workbench, the Windows MySQL service, or `brew services start mysql` on a Mac).
+2. Only if your MySQL user or password is not `root` with an empty password: copy `greenpulse.example.properties` to `greenpulse.properties` in this folder and fill in `mysql.user` and `mysql.password`. That file stays on your computer (git ignores it). The `GREENPULSE_MYSQL_*` environment variables and `-Dgreenpulse.mysql.*` options still work and take priority. For anything beyond a classroom demo, use a restricted database account.
+3. Run the app with one of the options below.
 4. Run the unit tests with `mvn test`.
+
+### NetBeans
+
+Open this folder with **File → Open Project** (NetBeans recognises it as a Maven project), then press **Run Project** (F6). The run, debug and profile actions are set up in `nbactions.xml`, so NetBeans starts `com.greenpulse.App` without asking for a main class.
+
+### VS Code
+
+Open **this folder** (the one containing `pom.xml`, not its parent) and install the recommended **Extension Pack for Java** when VS Code offers it. It includes Red Hat's *Language Support for Java*, which the Run and Debug buttons need. Then press **F5**, or choose **Run → Run Without Debugging**, and pick the **GreenPulse** configuration from `.vscode/launch.json`. **Terminal → Run Task → GreenPulse: run with Maven** starts it the way NetBeans does.
+
+### Command line
+
+`mvn compile exec:exec` (a separate Java process, like NetBeans) or `mvn compile exec:java`.
+
+### If sign-in says it cannot reach MySQL
+
+The message names the cause: *MySQL is not answering* means the server is not running or is on another port (`mysql.port`); *MySQL refused the user* means the user name or password in `greenpulse.properties` is wrong. A stopped server is reported within 5 seconds instead of leaving the window waiting.
 
 On first launch the app creates `greenpulse_db` and all tables from **`src/main/resources/schema.sql`**, which is the single source of truth for the schema. The statements are idempotent, and columns missing from databases created by older versions are added automatically. Older databases keep their original `DOUBLE` column types; a fresh database uses `DECIMAL` columns and CHECK constraints.
 
@@ -139,7 +155,8 @@ To find coordinates, use a trusted map source and copy the exact latitude and lo
 - Register a Bin is a scrollable, three-step form: bin details, sensor settings, and optional Philippines map coordinates. The bin ID is generated automatically, labels change for recycling versus compost bins, input errors are explained in plain language, and Clear Form resets the values.
 - Sensor Simulation now explains the selected bin, displays the fill percentage as you adjust it, and clarifies that submitted values are test readings saved to the database.
 - Analytics, Profile, and Dispatch have consistent headings, spacing, color use, and clearer helper text. Profile information is read-only to avoid suggesting that changing a text field will update the account.
-- The app uses FlatLaf styling with consistent rounded controls and a green accent.
+- The app uses a clean white design: white sheets with soft shadows on a light ground, the Geist and Geist Mono typefaces (bundled, SIL Open Font License), one forest-green accent for the main action and the current page, and colour reserved for bins that need attention. A dark theme is available under Profile → Theme.
+- Monitor shows every bin on one **fill line**, plotted by fill level against the Due (60%) and Critical (85%) marks. Hover a dot to see the bin; click it to select that bin in the table.
 
 ## Changes in this version
 
